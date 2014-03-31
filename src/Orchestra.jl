@@ -1,9 +1,9 @@
 # Orchestra module.
 module Orchestra
 
-# Export methods and types
-
 # Load source files
-include(joinpath("learner", "learner.jl"))
+include("abstractlearner.jl")
+include("util.jl")
+include(joinpath("learners", "learners.jl"))
 
 end # module
