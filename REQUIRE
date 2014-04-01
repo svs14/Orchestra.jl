@@ -1,5 +1,7 @@
 julia 0.3-
 RDatasets 0.1.1
+Fixtures 0.0-
+FactCheck
 DecisionTree 0.2-
 LIBSVM
 Match
