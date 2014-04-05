@@ -1,5 +1,5 @@
 # Run all tests.
-module RunAllTests
+module TestRunner
     using FactCheck
 
     include("test_abstractlearner.jl")
