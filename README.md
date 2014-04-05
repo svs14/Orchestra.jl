@@ -12,12 +12,12 @@ composition.
 
 ## Changes
 
-See [CHANGELOG.yml](CHANGELOG.yml) for more details.
+See [CHANGELOG.yml](CHANGELOG.yml).
 
 ## Contributing 
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for more details.
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT "Expat" License. See [LICENSE.txt](LICENSE.txt) for more details.
+MIT "Expat" License. See [LICENSE.md](LICENSE.md).
