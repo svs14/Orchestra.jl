@@ -8,7 +8,7 @@ composition.
 
 ## Tutorial
 
-### Setup our classification problem
+### Get the Data
 
 ```julia
 import RDatasets
@@ -24,6 +24,49 @@ test_instances = instances[test_ind, :]
 train_labels = labels[train_ind]
 test_labels = labels[test_ind]
 ```
+
+### Try a Learner
+```julia
+learner = PrunedTree()
+train!(learner, train_instances, train_labels)
+predictions = predict!(learner, test_instances)
+result = score(learner, test_instances, test_labels, predictions)
+```
+
+### Try another Learner
+```julia
+learner = SVM()
+```
+
+### ... More
+```julia
+learner = RandomForest()
+```
+
+### Which is best? Machine decides
+```julia
+learner = BestLearnerSelection({:learners => [PrunedTree(), SVM(), RandomForest()]})
+```
+
+### Why even choose? Majority rules
+```julia
+learner = VoteEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()]})
+```
+
+### A Learner on a Learner? We have to go Deeper
+```julia
+learner = StackEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()], :stacker => SVM()})
+```
+### Ensemble of Ensembles of Ensembles
+```julia
+ensemble_1 = RandomForest()
+ensemble_2 = StackEnsemble({:learners => [PrunedTree(), SVM()], :stacker => SVM()})
+ensemble_3 = VoteEnsemble({:learners => [ensemble_1, ensemble_2]})
+ensemble_4 = VoteEnsemble()
+learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
+```
+
+### Woah!
 
 ## Available Learners
 
@@ -43,7 +86,7 @@ See [CHANGELOG.yml](CHANGELOG.yml).
 
 ## Future Work
 
-See [FUTUREWORK.yml](CHANGELOG.yml).
+See [FUTUREWORK.md](FUTUREWORK.md).
 
 ## Contributing 
 
