@@ -14,18 +14,18 @@ export Learner,
        score
 
 # Include abstract learner as convenience
-using Orchestra.AbstractLearner
+importall Orchestra.AbstractLearner
 
 # Include atomic Julia learners
 include(joinpath("julia", "decisiontree.jl"))
-using .DecisionTreeWrapper
+importall .DecisionTreeWrapper
 include(joinpath("julia", "libsvm.jl"))
-using .LIBSVMWrapper
+importall .LIBSVMWrapper
 
 # Include aggregate learners last, dependent on atomic learners
 include(joinpath("julia", "ensemble.jl"))
-using .EnsembleMethods
+importall .EnsembleMethods
 include(joinpath("julia", "selection.jl"))
-using .SelectionMethods
+importall .SelectionMethods
 
 end # module

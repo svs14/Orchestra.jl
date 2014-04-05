@@ -1,7 +1,8 @@
 # Contributing Guidelines
 
-Contributions are always welcome! 
-Please contact me first so that we can iron out any design inconsistencies. =)
+Bug issues + fixes are always welcome! 
+If you are interested in building a new feature, please contact me first so we
+can iron out any design inconsistencies. =)
 
 Coding Guideline:
 

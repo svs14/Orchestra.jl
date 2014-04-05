@@ -1,14 +1,13 @@
 # Various functions that work with learners.
 module Util
 
-importall Orchestra
 import MLBase: Kfold
 
 export holdout,
        kfold
 
 # Holdout method that partitions a collection
-# into two partitions
+# into two partitions.
 #
 # @param n Size of collection to partition.
 # @param right_prop Percentage of collection placed in right partition.

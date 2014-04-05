@@ -6,9 +6,10 @@ import Orchestra.Util: holdout
 import Stats
 import MLBase
 
+import Orchestra.Learners.DecisionTreeWrapper: train!, predict!
 import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
 import Orchestra.Learners.DecisionTreeWrapper: RandomForest
-import Orchestra.Learners.LIBSVMWrapper: SVM
+import Orchestra.Learners.LIBSVMWrapper: SVM, train!, predict!
 
 export VoteEnsemble, 
        StackEnsemble,
@@ -154,10 +155,9 @@ function predict!(se::StackEnsemble, instances::Matrix)
 end
 
 # Build stacker instances.
-function build_stacker_instances(
-    learners::Vector{Learner}, instances::Matrix, 
-    label_map, keep_original_features=false
-    )
+function build_stacker_instances{T<:Learner}(
+    learners::Vector{T}, instances::Matrix, 
+    label_map, keep_original_features=false)
 
     # Build empty stacker instance space
     num_labels = size(label_map.vs, 1)

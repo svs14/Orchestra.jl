@@ -45,9 +45,10 @@ end
 function score(learner::Learner, instances::Matrix, labels::Vector,
     predictions::Vector)
 
-    return @match learner.options[:metric] begin
+    metric = learner.options[:metric]
+    return @match metric begin
         :accuracy => mean(labels .== predictions) * 100.0
-        _ => error("Metric $learner.metric not implemented for score.")
+        _ => error("Metric $metric not implemented for score.")
     end
 end
 

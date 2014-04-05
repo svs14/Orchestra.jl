@@ -3,7 +3,7 @@ module DecisionTreeWrapper
 
 importall Orchestra.AbstractLearner
 import DecisionTree
-dt = DecisionTree
+DT = DecisionTree
 
 export PrunedTree, 
        RandomForest,
@@ -46,11 +46,11 @@ end
 
 function train!(tree::PrunedTree, instances::Matrix, labels::Vector)
     impl_options = tree.options[:impl_options]
-    tree.model = dt.build_tree(labels, instances)
-    tree.model = dt.prune_tree(tree.model,impl_options[:purity_threshold])
+    tree.model = DT.build_tree(labels, instances)
+    tree.model = DT.prune_tree(tree.model, impl_options[:purity_threshold])
 end
 function predict!(tree::PrunedTree, instances::Matrix)
-    return dt.apply_tree(tree.model, instances)
+    return DT.apply_tree(tree.model, instances)
 end
 
 # Random forest (C4.5).
@@ -103,7 +103,7 @@ function train!(forest::RandomForest, instances::Matrix, labels::Vector)
         num_subfeatures = impl_options[:num_subfeatures]
     end
     # Build model
-    forest.model = dt.build_forest(
+    forest.model = DT.build_forest(
         labels, 
         instances,
         num_subfeatures, 
@@ -113,7 +113,7 @@ function train!(forest::RandomForest, instances::Matrix, labels::Vector)
 end
 
 function predict!(forest::RandomForest, instances::Matrix)
-    return dt.apply_forest(forest.model, instances)
+    return DT.apply_forest(forest.model, instances)
 end
 
 # Adaboosted C4.5 decision stumps.
@@ -132,7 +132,6 @@ end
 # </pre>
 type DecisionStumpAdaboost <: Learner
     model
-    coefficients
     options
     
     function DecisionStumpAdaboost(options=Dict())
@@ -146,22 +145,30 @@ type DecisionStumpAdaboost <: Learner
                 :num_iterations => 7
             },
         }
-        new(nothing, nothing, merge(default_options, options))
+        new(nothing, merge(default_options, options))
     end
 end
 
 function train!(adaboost::DecisionStumpAdaboost, 
     instances::Matrix, labels::Vector)
 
-    adaboost.model, adaboost.coefficients = dt.build_adaboost_stumps(
+    # NOTE(sjenkz): Variable 'model' renamed to 'ensemble'.
+    #               This differs to DecisionTree
+    #               official documentation to avoid confusion in variable
+    #               naming within Orchestra.
+    ensemble, coefficients = DT.build_adaboost_stumps(
         labels, instances, adaboost.options[:impl_options][:num_iterations]
     )
+    adaboost.model = {
+        :ensemble => ensemble,
+        :coefficients => coefficients
+    }
 end
 
 function predict!(adaboost::DecisionStumpAdaboost, instances::Matrix)
-    return dt.apply_adaboost_stumps(
-        adaboost.model, adaboost.coefficients, instances
+    return DT.apply_adaboost_stumps(
+        adaboost.model[:ensemble], adaboost.model[:coefficients], instances
     )
 end
 
-end #module
+end # module
