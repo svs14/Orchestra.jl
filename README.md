@@ -1,6 +1,6 @@
 # Orchestra
 
-[![Build Status](https://travis-ci.org/sjenkz/Orchestra.jl.png)](https://travis-ci.org/sjenkz/Orchestra.jl)
+[![Build Status](https://travis-ci.org/svs14/Orchestra.jl.png)](https://travis-ci.org/svs14/Orchestra.jl)
 
 Orchestra is a heterogeneous ensemble learning package for the Julia programming
 language. It is driven by a uniform machine learner API designed for learner

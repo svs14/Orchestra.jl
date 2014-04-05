@@ -152,7 +152,7 @@ end
 function train!(adaboost::DecisionStumpAdaboost, 
   instances::Matrix, labels::Vector)
 
-  # NOTE(sjenkz): Variable 'model' renamed to 'ensemble'.
+  # NOTE(svs14): Variable 'model' renamed to 'ensemble'.
   #         This differs to DecisionTree
   #         official documentation to avoid confusion in variable
   #         naming within Orchestra.

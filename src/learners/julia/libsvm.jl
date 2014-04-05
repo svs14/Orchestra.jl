@@ -43,7 +43,7 @@ type SVM <: Learner
   options
   
   function SVM(options=Dict())
-    # TODO(sjenkz): Comment each option.
+    # TODO(svs14): Comment each option.
     default_options = {
       # Metric to train against
       # (:accuracy).
@@ -89,7 +89,7 @@ end
 
 function predict!(svm::SVM, instances::Matrix)
   # Predict on instances
-  # NOTE(sjenkz): instances must be transposed to fit into LIBSVM API.
+  # NOTE(svs14): instances must be transposed to fit into LIBSVM API.
   predicted_labels, decision_values = LIBSVM.svmpredict(svm.model, instances')
 
   # Coerce into standardized category label format if labels are strings
