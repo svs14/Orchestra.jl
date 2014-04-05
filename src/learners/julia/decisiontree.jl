@@ -171,4 +171,4 @@ function predict!(adaboost::DecisionStumpAdaboost, instances::Matrix)
     )
 end
 
-end #module
+end # module
