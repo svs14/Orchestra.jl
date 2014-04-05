@@ -4,9 +4,10 @@ module SelectionMethods
 importall Orchestra.AbstractLearner
 import Orchestra.Util: kfold
 
+import Orchestra.Learners.DecisionTreeWrapper: train!, predict!
 import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
 import Orchestra.Learners.DecisionTreeWrapper: RandomForest
-import Orchestra.Learners.LIBSVMWrapper: SVM
+import Orchestra.Learners.LIBSVMWrapper: SVM, train!, predict!
 
 export BestLearnerSelection, 
        train!, 
@@ -24,6 +25,8 @@ export BestLearnerSelection,
 #     # Function that selects the best learner by index.
 #     # Arg learner_partition_scores is a (learner, partition) score matrix.
 #     :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],          
+#     # Score type returned by score() using respective metric.
+#     :score_type => Real
 #     # Candidate learners.
 #     :learners => [PrunedTree(), SVM(), RandomForest()]
 # }
@@ -42,6 +45,8 @@ type BestLearnerSelection <: Learner
             # Function that selects the best learner by index.
             # Arg learner_partition_scores is a (learner, partition) score matrix.
             :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],          
+            # Score type returned by score() using respective metric.
+            :score_type => Real,
             # Candidate learners.
             :learners => [PrunedTree(), SVM(), RandomForest()]
         }
@@ -59,7 +64,8 @@ function train!(bls::BestLearnerSelection, instances::Matrix, labels::Vector)
     num_partitions = size(partitions, 1)
     num_learners = size(learners, 1)
     num_instances = size(instances, 1)
-    learner_partition_scores = Array(Any, num_learners, num_partitions)
+    score_type = bls.options[:score_type]
+    learner_partition_scores = Array(score_type, num_learners, num_partitions)
     for l_index = 1:num_learners, p_index = 1:num_partitions
         partition = partitions[p_index]
         rest = setdiff(1:num_instances, partition)
@@ -89,6 +95,7 @@ function train!(bls::BestLearnerSelection, instances::Matrix, labels::Vector)
     # Create model
     bls.model = {
         :best_learner => best_learner,
+        :best_learner_index => best_learner_index,
         :learners => learners,
         :learner_partition_scores => learner_partition_scores
     }

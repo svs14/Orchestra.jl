@@ -4,6 +4,7 @@ using FactCheck
 using Fixtures
 
 using Orchestra.AbstractLearner
+OAL = AbstractLearner
 
 type StubLearner <: Learner
     model
