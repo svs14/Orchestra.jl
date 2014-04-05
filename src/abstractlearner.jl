@@ -19,7 +19,7 @@ abstract Learner
 # @param instances Training instances.
 # @param labels Training labels.
 function train!(learner::Learner, instances::Matrix, labels::Vector)
-    error(typeof(learner), " does not implement train!")
+  error(typeof(learner), " does not implement train!")
 end
 
 # Trains learner on provided instances and labels.
@@ -28,7 +28,7 @@ end
 # @param instances Candidate instances.
 # @return Predictions.
 function predict!(learner::Learner, instances::Matrix)
-    error(typeof(learner), " does not implement predict!")
+  error(typeof(learner), " does not implement predict!")
 end
 
 # Score learner predictions against ground truth labels.
@@ -43,13 +43,13 @@ end
 # @param instances Predicted labels.
 # @return Score of learner.
 function score(learner::Learner, instances::Matrix, labels::Vector,
-    predictions::Vector)
+  predictions::Vector)
 
-    metric = learner.options[:metric]
-    return @match metric begin
-        :accuracy => mean(labels .== predictions) * 100.0
-        _ => error("Metric $metric not implemented for score.")
-    end
+  metric = learner.options[:metric]
+  return @match metric begin
+    :accuracy => mean(labels .== predictions) * 100.0
+    _ => error("Metric $metric not implemented for score.")
+  end
 end
 
 end # module
