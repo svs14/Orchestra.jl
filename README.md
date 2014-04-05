@@ -8,6 +8,23 @@ composition.
 
 ## Tutorial
 
+### Setup our classification problem
+
+```julia
+import RDatasets
+using Orchestra.Util
+using Orchestra.Learners
+
+dataset = RDatasets.dataset("datasets", "iris")
+instances = array(dataset[:, 1:(end-1)])
+labels = array(dataset[:, end])
+(train_ind, test_ind) = holdout(size(instances, 1), 0.3)
+train_instances = instances[train_ind, :]
+test_instances = instances[test_ind, :]
+train_labels = labels[train_ind]
+test_labels = labels[test_ind]
+```
+
 ## Available Learners
 
 | Learner               | Library         | Constraints      | Metrics  | Description                       |
