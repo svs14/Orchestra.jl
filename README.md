@@ -26,6 +26,7 @@ test_labels = labels[test_ind]
 ```
 
 ### Try a Learner
+
 ```julia
 learner = PrunedTree()
 train!(learner, train_instances, train_labels)
@@ -34,30 +35,37 @@ result = score(learner, test_instances, test_labels, predictions)
 ```
 
 ### Try another Learner
+
 ```julia
 learner = SVM()
 ```
 
 ### ... More
+
 ```julia
 learner = RandomForest()
 ```
 
 ### Which is best? Machine decides
+
 ```julia
 learner = BestLearnerSelection({:learners => [PrunedTree(), SVM(), RandomForest()]})
 ```
 
 ### Why even choose? Majority rules
+
 ```julia
 learner = VoteEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()]})
 ```
 
 ### A Learner on a Learner? We have to go Deeper
+
 ```julia
 learner = StackEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()], :stacker => SVM()})
 ```
+
 ### Ensemble of Ensembles of Ensembles
+
 ```julia
 ensemble_1 = RandomForest()
 ensemble_2 = StackEnsemble({:learners => [PrunedTree(), SVM()], :stacker => SVM()})
