@@ -1,5 +1,8 @@
 %YAML 1.2
 ---
 changes:
-  v0.0.1:
-    - TODO(svs14): Update at release time.
+  v0.0.0:
+    - First release.
+    - Architecture implemented.
+    - LIBSVM.jl, DecisionTree.jl integrated.
+    - Basic ensemble methods provided by Orchestra.jl.
