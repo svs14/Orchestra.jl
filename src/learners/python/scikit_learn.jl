@@ -5,11 +5,19 @@ importall Orchestra.AbstractLearner
 using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM
+@pyimport sklearn.neighbors as NN
 
 export SKLRandomForest,
        SKLExtraTrees,
        SKLGradientBoosting,
        SKLLogisticRegression,
+       SKLPassiveAggressive,
+       SKLRidge,
+       SKLRidgeCV,
+       SKLSGD,
+       SKLKNeighbors,
+       SKLRadiusNeighbors,
+       SKLNearestCentroid,
        train!,
        predict!
 
@@ -63,7 +71,6 @@ type SKLRandomForest <: Learner
   end
 end
 
-
 function train!(rf::SKLRandomForest, instances::Matrix, labels::Vector)
   impl_options = rf.options[:impl_options]
   rf.model = ENS.RandomForestClassifier(;impl_options...)
@@ -73,6 +80,7 @@ end
 function predict!(rf::SKLRandomForest, instances::Matrix)
   return collect(rf.model[:predict](instances))
 end
+
 
 type SKLExtraTrees <: Learner
   model
@@ -124,7 +132,6 @@ type SKLExtraTrees <: Learner
   end
 end
 
-
 function train!(et::SKLExtraTrees, instances::Matrix, labels::Vector)
   impl_options = et.options[:impl_options]
   et.model = ENS.ExtraTreesClassifier(;impl_options...)
@@ -134,6 +141,7 @@ end
 function predict!(et::SKLExtraTrees, instances::Matrix)
   return collect(et.model[:predict](instances))
 end
+
 
 type SKLGradientBoosting <: Learner
   model
@@ -177,7 +185,6 @@ type SKLGradientBoosting <: Learner
   end
 end
 
-
 function train!(gb::SKLGradientBoosting, instances::Matrix, labels::Vector)
   impl_options = gb.options[:impl_options]
   gb.model = ENS.GradientBoostingClassifier(;impl_options...)
@@ -187,6 +194,7 @@ end
 function predict!(gb::SKLGradientBoosting, instances::Matrix)
   return collect(gb.model[:predict](instances))
 end
+
 
 type SKLLogisticRegression <: Learner
   model
@@ -233,6 +241,379 @@ end
 
 function predict!(lr::SKLLogisticRegression, instances::Matrix)
   return collect(lr.model[:predict](instances))
+end
+
+
+type SKLPassiveAggressive <: Learner
+  model
+  options
+  
+  function SKLPassiveAggressive(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Maximum step size (regularization).
+        :C => 1.0,
+        # Whether the intercept should be estimated or not.
+        # If false, the data is assumed to be already centered.
+        :fit_intercept => true,
+        # The number of passes over the training data (aka epochs).
+        :n_iter => 5,
+        # Whether or not the training data should be shuffled after each epoch.
+        :shuffle => false,
+        # Verbosity level.
+        :verbose => 0,
+        # The loss function to be used.
+        # ("hinge", "squared_hinge")
+        :loss => "hinge",
+        # Number of CPUs to use in multi-class problems.
+        :n_jobs => 1,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        :random_state => nothing,
+        # When set to True, reuse the solution of the previous call to fit as
+        # initialization, otherwise, just erase the previous solution.
+        :warm_start => false
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(pa::SKLPassiveAggressive, instances::Matrix, labels::Vector)
+  impl_options = pa.options[:impl_options]
+  pa.model = LM.PassiveAggressiveClassifier(;impl_options...)
+  pa.model[:fit](instances, labels)
+end
+
+function predict!(pa::SKLPassiveAggressive, instances::Matrix)
+  return collect(pa.model[:predict](instances))
+end
+
+
+type SKLRidge <: Learner
+  model
+  options
+  
+  function SKLRidge(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Small positive values of alpha improve the conditioning of the problem
+        # and reduce the variance of the estimates.
+        :alpha => 1.0,
+        # Whether to calculate the intercept for this model.
+        :fit_intercept => true,
+        # If True, the regressors X will be normalized before regression.
+        :normalize => false,
+        # If True, X will be copied; else, it may be overwritten.
+        :copy_X => true,
+        # Maximum number of iterations for conjugate gradient solver.
+        :max_iter => nothing,
+        # Precision of the solution.
+        :tol => 0.001,
+        # Weights associated with classes in the form {class_label : weight}. If
+        # not given, all classes are supposed to have weight one.
+        :class_weight => nothing,
+        # TODO(svs14): Summarize this.
+        # Solver to use in the computational routines. ‘svd’ will use a Singular
+        # value decomposition to obtain the solution, ‘dense_cholesky’ will use
+        # the standard scipy.linalg.solve function, ‘sparse_cg’ will use the
+        # conjugate gradient solver as found in scipy.sparse.linalg.cg while
+        # ‘auto’ will chose the most appropriate depending on the matrix X.
+        # ‘lsqr’ uses a direct regularized least-squares routine provided by
+        # scipy.
+        # ("auto", "svd", "dense_cholesky", "lsqr", "sparse_cg")
+        :solver => "auto"
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(ri::SKLRidge, instances::Matrix, labels::Vector)
+  impl_options = ri.options[:impl_options]
+  ri.model = LM.RidgeClassifier(;impl_options...)
+  ri.model[:fit](instances, labels)
+end
+
+function predict!(ri::SKLRidge, instances::Matrix)
+  return collect(ri.model[:predict](instances))
+end
+
+
+type SKLRidgeCV <: Learner
+  model
+  options
+  
+  function SKLRidgeCV(options=Dict())
+    default_options = {
+      # Metrcvc to train against
+      # (:accuracy).
+      :metrcvc => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Array of alpha values to try. Small positive values of alpha improve
+        # the conditioning of the problem and reduce the variance of the
+        # estimates.
+        :alphas => [0.1, 1., 10.],
+        # Whether to calculate the intercept for this model.
+        :fit_intercept => true,
+        # If True, the regressors X will be normalized before regression.
+        :normalize => false,
+        # Very Python specific (see original sci-kit learn documentation).
+        :score_func => nothing,
+        # Very Python specific (see original sci-kit learn documentation).
+        :loss_func => nothing,
+        # Very Python specific (see original sci-kit learn documentation).
+        :cv => nothing,
+        # Weights associated with classes in the form {class_label : weight}.
+        :class_weight => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(rcv::SKLRidgeCV, instances::Matrix, labels::Vector)
+  impl_options = rcv.options[:impl_options]
+  rcv.model = LM.RidgeClassifierCV(;impl_options...)
+  rcv.model[:fit](instances, labels)
+end
+
+function predict!(rcv::SKLRidgeCV, instances::Matrix)
+  return collect(rcv.model[:predict](instances))
+end
+
+
+type SKLSGD <: Learner
+  model
+  options
+  
+  function SKLSGD(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # The loss function to be used. Defaults to ‘hinge’, which gives a
+        # linear SVM. The ‘log’ loss gives logistic regression, a probabilistic
+        # classifier. ‘modified_huber’ is another smooth loss that brings
+        # tolerance to outliers as well as probability estimates.
+        # ‘squared_hinge’ is like hinge but is quadratically penalized.
+        # ‘perceptron’ is the linear loss used by the perceptron algorithm. The
+        # other losses are designed for regression but can be useful in
+        # classification as well.
+        # ("hinge", "log", "modified_huber", "squared_hinge",
+        #  "perceptron", "squared_loss", "huber", "epsilon_insensitive",
+        #  "squared_epsilon_insensitive")
+        :loss => "hinge",
+        # The penalty (aka regularization term) to be used.
+        # ("l2", "l1", "elasticnet")
+        :penalty => "l2",
+        # Constant that multiplies the regularization term. 
+        :alpha => 0.0001,
+        # The Elastic Net mixing parameter, with 0 <= l1_ratio <= 1. l1_ratio=0
+        # corresponds to L2 penalty, l1_ratio=1 to L1.
+        :l1_ratio => 0.15,
+        # Whether the intercept should be estimated or not.
+        :fit_intercept => true,
+        # The number of passes over the training data (aka epochs).
+        :n_iter => 5,
+        # Whether or not the training data should be shuffled after each epoch.
+        :shuffle => false,
+        # The verbosity level.
+        :verbose => 0,
+        # Epsilon in the epsilon-insensitive loss functions; only if loss is
+        # ‘huber’, ‘epsilon_insensitive’, or ‘squared_epsilon_insensitive’. For
+        # ‘huber’, determines the threshold at which it becomes less important
+        # to get the prediction exactly right. For epsilon-insensitive, any
+        # differences between the current prediction and the correct label are
+        # ignored if they are less than this threshold.
+        :epsilon => 0.1,
+        # The number of CPUs to use for multi-class problems.
+        :n_jobs => 1,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        # (Int, Python RandomState, nothing)
+        :random_state => nothing,
+        # The learning rate: constant: eta = eta0 optimal: eta = 1.0/(t+t0)
+        # [default] invscaling: eta = eta0 / pow(t, power_t) .
+        :learning_rate => "optimal",
+        # The initial learning rate.
+        :eta0 => 0.0,
+        # The exponent for inverse scaling learning rate.
+        :power_t => 0.5,
+        # Very Python specific (see original sci-kit learn documentation).
+        :class_weight => nothing,
+        # When set to True, reuse the solution of the previous call to fit as
+        # initialization, otherwise, just erase the previous solution.
+        :warm_start => false,
+        # Undocumented.
+        :rho => nothing,
+        # Undocumented.
+        :seed => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(sgd::SKLSGD, instances::Matrix, labels::Vector)
+  impl_options = sgd.options[:impl_options]
+  sgd.model = LM.SGDClassifier(;impl_options...)
+  sgd.model[:fit](instances, labels)
+end
+
+function predict!(sgd::SKLSGD, instances::Matrix)
+  return collect(sgd.model[:predict](instances))
+end
+
+
+type SKLKNeighbors <: Learner
+  model
+  options
+  
+  function SKLKNeighbors(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Number of neighbors to use.
+        :n_neighbors => 5,
+        # Weight function used in prediction.
+        # ("uniform", "distance", Function - see scikit-learn documentation)
+        :weights => "uniform",
+        # Algorithm used to compute the nearest neighbors.
+        # ("ball_tree", "kd_tree", "brute", "auto")
+        :algorithm => "auto",
+        # Leaf size passed to BallTree or KDTree.
+        :leaf_size => 30,
+        # Power parameter for the Minkowski metric. When p = 1, this is
+        # equivalent to using manhattan_distance (l1), and euclidean_distance
+        # (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.
+        :p => 2,
+        # The distance metric to use for the tree. The default metric is
+        # minkowski, and with p=2 is equivalent to the standard Euclidean
+        # metric.
+        :metric => "minkowski"
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(nn::SKLKNeighbors, instances::Matrix, labels::Vector)
+  impl_options = nn.options[:impl_options]
+  nn.model = NN.KNeighborsClassifier(;impl_options...)
+  nn.model[:fit](instances, labels)
+end
+
+function predict!(nn::SKLKNeighbors, instances::Matrix)
+  return collect(nn.model[:predict](instances))
+end
+
+
+type SKLRadiusNeighbors <: Learner
+  model
+  options
+  
+  function SKLRadiusNeighbors(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Range of parameter space to use by default for :meth`radius_neighbors`
+        # queries.
+        :radius => 1.0,
+        # Weight function used in prediction.
+        # ("uniform", "distance", Function - see scikit-learn documentation)
+        :weights => "uniform",
+        # Algorithm used to compute the nearest neighbors.
+        # ("ball_tree", "kd_tree", "brute", "auto")
+        :algorithm => "auto",
+        # Leaf size passed to BallTree or KDTree.
+        :leaf_size => 30,
+        # Power parameter for the Minkowski metric. When p = 1, this is
+        # equivalent to using manhattan_distance (l1), and euclidean_distance
+        # (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.
+        :p => 2,
+        # The distance metric to use for the tree. The default metric is
+        # minkowski, and with p=2 is equivalent to the standard Euclidean
+        # metric.
+        :metric => "minkowski",
+        # NOTE(svs14): Unlike sci-kit learn, we override nothing option 
+        #              with a random label for outliers.
+        # Label, which is given for outlier samples (samples with no neighbors
+        # on given radius). If set to None, ValueError is raised, when outlier
+        # is detected.
+        :outlier_label => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(rn::SKLRadiusNeighbors, instances::Matrix, labels::Vector)
+  impl_options = copy(rn.options[:impl_options])
+
+  # Set training-dependent options
+  if impl_options[:outlier_label] == nothing
+    # Randomly select a label to assign to outliers
+    impl_options[:outlier_label] = labels[rand(1:size(labels, 1))]
+  end
+
+  # Train model
+  rn.model = NN.RadiusNeighborsClassifier(;impl_options...)
+  rn.model[:fit](instances, labels)
+end
+
+function predict!(rn::SKLRadiusNeighbors, instances::Matrix)
+  return collect(rn.model[:predict](instances))
+end
+
+
+type SKLNearestCentroid <: Learner
+  model
+  options
+  
+  function SKLNearestCentroid(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Very Python specific (see original sci-kit learn documentation).
+        :metric => "euclidean",
+        # Threshold for shrinking centroids to remove features.
+        # (Float, nothing)
+        :shrink_threshold => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(nc::SKLNearestCentroid, instances::Matrix, labels::Vector)
+  impl_options = nc.options[:impl_options]
+  nc.model = NN.NearestCentroid(;impl_options...)
+  nc.model[:fit](instances, labels)
+end
+
+function predict!(nc::SKLNearestCentroid, instances::Matrix)
+  return collect(nc.model[:predict](instances))
 end
 
 end # module
