@@ -27,6 +27,9 @@ facts("Ensemble learners", using_fixtures) do
   end
 
   context("StackEnsemble predicts with combined learners", using_fixtures) do
+    # Fix random seed, due to stochasticity in stacker.
+    srand(2)
+
     always_a_options = { :label => "a" }
     learner = StackEnsemble({
       :learners => [
