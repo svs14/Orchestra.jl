@@ -9,6 +9,7 @@ export Learner,
        StackEnsemble,
        SVM,
        BestLearnerSelection,
+       SKLRandomForest,
        train!,
        predict!,
        score
@@ -21,6 +22,10 @@ include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
 include(joinpath("julia", "libsvm.jl"))
 importall .LIBSVMWrapper
+
+# Include atomic Python learners
+include(joinpath("python", "scikit_learn.jl"))
+importall .ScikitLearnWrapper
 
 # Include aggregate learners last, dependent on atomic learners
 include(joinpath("julia", "ensemble.jl"))

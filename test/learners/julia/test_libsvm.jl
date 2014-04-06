@@ -1,6 +1,6 @@
 module TestLIBSVMWrapper
 
-include("fixture_learners.jl")
+include("../fixture_learners.jl")
 importall .FixtureLearners
 
 using FactCheck

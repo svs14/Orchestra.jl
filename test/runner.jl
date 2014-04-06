@@ -8,6 +8,7 @@ module TestRunner
   include("learners/julia/test_libsvm.jl")
   include("learners/julia/test_ensemble.jl")
   include("learners/julia/test_selection.jl")
+  include("learners/python/test_scikit_learn.jl")
 
   exitstatus()
 end # module
