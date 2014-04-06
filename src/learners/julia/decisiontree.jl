@@ -153,9 +153,9 @@ function train!(adaboost::DecisionStumpAdaboost,
   instances::Matrix, labels::Vector)
 
   # NOTE(svs14): Variable 'model' renamed to 'ensemble'.
-  #         This differs to DecisionTree
-  #         official documentation to avoid confusion in variable
-  #         naming within Orchestra.
+  #              This differs to DecisionTree
+  #              official documentation to avoid confusion in variable
+  #              naming within Orchestra.
   ensemble, coefficients = DT.build_adaboost_stumps(
     labels, instances, adaboost.options[:impl_options][:num_iterations]
   )

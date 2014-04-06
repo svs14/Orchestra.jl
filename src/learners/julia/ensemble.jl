@@ -72,7 +72,7 @@ end
 #   # Machine learner that trains on set of learners' outputs.
 #   :stacker => SVM(),
 #   # Proportion of training set left to train stacker itself.
-#   :stacker_training_proportion => 0.2,
+#   :stacker_training_proportion => 0.3,
 #   # Provide original features on top of learner outputs to stacker.
 #   :keep_original_features => false
 # }
@@ -91,7 +91,7 @@ type StackEnsemble <: Learner
       # Machine learner that trains on set of learners' outputs.
       :stacker => SVM(),
       # Proportion of training set left to train stacker itself.
-      :stacker_training_proportion => 0.2,
+      :stacker_training_proportion => 0.3,
       # Provide original features on top of learner outputs to stacker.
       :keep_original_features => false
     }
