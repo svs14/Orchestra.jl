@@ -88,15 +88,31 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ## Available Learners
 
-| Learner               | Library         | Constraints      | Metrics  | Description                       |
-|-----------------------|-----------------|------------------|----------|-----------------------------------|
-| PrunedTree            | DecisionTree.jl |                  | accuracy | C4.5 Decision Tree.               |
-| RandomForest          | DecisionTree.jl |                  | accuracy | C4.5 Random Forest.               |
-| DecisionStumpAdaboost | DecisionTree.jl |                  | accuracy | C4.5 Adaboosted Decision Stumps.  |
-| VoteEnsemble          | Orchestra.jl    |                  | accuracy | Majority Vote Ensemble.           |
-| StackEnsemble         | Orchestra.jl    |                  | accuracy | Stack Ensemble.                   |
-| BestLearnerSelection  | Orchestra.jl    |                  | accuracy | Selects best learner out of pool. |
+Python's scikit-learn 0.14 must be installed to run SKL prefixed learners.
 
+| Learner               | Library         | Constraints | Metrics  | Description                                      |
+|-----------------------|-----------------|-------------|----------|--------------------------------------------------|
+| PrunedTree            | DecisionTree.jl |             | accuracy | C4.5 Decision Tree.                              |
+| RandomForest          | DecisionTree.jl |             | accuracy | C4.5 Random Forest.                              |
+| DecisionStumpAdaboost | DecisionTree.jl |             | accuracy | C4.5 Adaboosted Decision Stumps.                 |
+| VoteEnsemble          | Orchestra.jl    |             | accuracy | Majority Vote Ensemble.                          |
+| StackEnsemble         | Orchestra.jl    |             | accuracy | Stack Ensemble.                                  |
+| BestLearnerSelection  | Orchestra.jl    |             | accuracy | Selects best learner out of pool.                |
+| SKLRandomForest       | scikit-learn    |             | accuracy | Random Forest.                                   |
+| SKLExtraTrees         | scikit-learn    |             | accuracy | Extra-trees.                                     |
+| SKLGradientBoosting   | scikit-learn    |             | accuracy | Gradient Boosting Machine.                       |
+| SKLLogisticRegression | scikit-learn    |             | accuracy | Logistic Regression.                             |
+| SKLPassiveAggressive  | scikit-learn    |             | accuracy | Passive Aggressive.                              |
+| SKLRidge              | scikit-learn    |             | accuracy | Ridge classifier.                                |
+| SKLRidgeCV            | scikit-learn    |             | accuracy | Ridge classifier with in-built Cross Validation. |
+| SKLSGD                | scikit-learn    |             | accuracy | Linear classifiers with SGD training.            |
+| SKLKNeighbors         | scikit-learn    |             | accuracy | K Nearest Neighbors                              |
+| SKLRadiusNeighbors    | scikit-learn    |             | accuracy | Within Radius Neighbors Vote.                    |
+| SKLNearestCentroid    | scikit-learn    |             | accuracy | Nearest Centroid.                                |
+| SKLSVC                | scikit-learn    |             | accuracy | C-Support Vector Classifier.                     |
+| SKLLinearSVC          | scikit-learn    |             | accuracy | Linear Support Vector Classifier.                |
+| SKLNuSVC              | scikit-learn    |             | accuracy | Nu-Support Vector Classifier.                    |
+| SKLDecisionTree       | scikit-learn    |             | accuracy | Decision Tree.                                   |
 ## Changes
 
 See [CHANGELOG.yml](CHANGELOG.yml).
