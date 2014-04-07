@@ -1,4 +1,7 @@
 # System tests.
+# 
+# NOTE(svs14): This must be run outside of runner.jl
+#              to avoid loading test learners.
 module TestSystem
 
 using Orchestra.Learners
@@ -50,11 +53,9 @@ facts("Orchestra system", using_fixtures) do
 
     # Test all learners
     for concrete_learner_type in concrete_learner_types
-      println("START: $concrete_learner_type")
       learner = concrete_learner_type()
       train!(learner, train_instances, train_labels)
       predict!(learner, test_instances)
-      println("STOP: $concrete_learner_type")
     end
 
     @fact 1 => 1

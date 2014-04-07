@@ -7,7 +7,6 @@ export Learner,
        DecisionStumpAdaboost,
        VoteEnsemble, 
        StackEnsemble,
-       SVM,
        BestLearnerSelection,
        SKLLearner,
        SKLRandomForest,
@@ -35,8 +34,6 @@ importall Orchestra.AbstractLearner
 # Include atomic Julia learners
 include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
-include(joinpath("julia", "libsvm.jl"))
-importall .LIBSVMWrapper
 
 # Include atomic Python learners
 include(joinpath("python", "scikit_learn.jl"))
