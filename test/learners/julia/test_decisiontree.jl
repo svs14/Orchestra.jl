@@ -12,10 +12,8 @@ using DecisionTree
 facts("DecisionTree learners", using_fixtures) do
   context("PrunedTree gives same results as its backend", using_fixtures) do
     # Predict with Orchestra learner
-    srand(1)
     learner = PrunedTree()
-    train!(learner, train_instances, train_labels)
-    orchestra_predictions = predict!(learner, test_instances)
+    orchestra_predictions = train_and_predict!(learner)
 
     # Predict with original backend learner
     srand(1)
@@ -29,10 +27,8 @@ facts("DecisionTree learners", using_fixtures) do
 
   context("RandomForest gives same results as its backend", using_fixtures) do
     # Predict with Orchestra learner
-    srand(1)
     learner = RandomForest()
-    train!(learner, train_instances, train_labels)
-    orchestra_predictions = predict!(learner, test_instances)
+    orchestra_predictions = train_and_predict!(learner)
 
     # Predict with original backend learner
     srand(1)
@@ -51,10 +47,8 @@ facts("DecisionTree learners", using_fixtures) do
 
   context("DecisionStumpAdaboost gives same results as its backend", using_fixtures) do
     # Predict with Orchestra learner
-    srand(1)
     learner = DecisionStumpAdaboost()
-    train!(learner, train_instances, train_labels)
-    orchestra_predictions = predict!(learner, test_instances)
+    orchestra_predictions = train_and_predict!(learner)
 
     # Predict with original backend learner
     srand(1)
