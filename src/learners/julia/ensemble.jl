@@ -9,7 +9,7 @@ import MLBase
 import Orchestra.Learners.DecisionTreeWrapper: train!, predict!
 import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
 import Orchestra.Learners.DecisionTreeWrapper: RandomForest
-import Orchestra.Learners.LIBSVMWrapper: SVM, train!, predict!
+import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
 
 export VoteEnsemble, 
        StackEnsemble,
@@ -24,7 +24,7 @@ export VoteEnsemble,
 #   # (:accuracy).
 #   :metric => :accuracy,
 #   # Learners in voting committee.
-#   :learners => [PrunedTree(), SVM(), RandomForest()]
+#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 # }
 # </pre>
 type VoteEnsemble <: Learner
@@ -37,7 +37,7 @@ type VoteEnsemble <: Learner
       # (:accuracy).
       :metric => :accuracy,
       # Learners in voting committee.
-      :learners => [PrunedTree(), SVM(), RandomForest()]
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
     }
     new(nothing, merge(default_options, options))
   end
@@ -68,9 +68,9 @@ end
 #   # (:accuracy).
 #   :metric => :accuracy,
 #   # Set of learners that produce feature space for stacker.
-#   :learners => [PrunedTree(), SVM(), RandomForest()],
+#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
 #   # Machine learner that trains on set of learners' outputs.
-#   :stacker => SVM(),
+#   :stacker => RandomForest(),
 #   # Proportion of training set left to train stacker itself.
 #   :stacker_training_proportion => 0.3,
 #   # Provide original features on top of learner outputs to stacker.
@@ -87,9 +87,9 @@ type StackEnsemble <: Learner
       # (:accuracy).
       :metric => :accuracy,
       # Set of learners that produce feature space for stacker.
-      :learners => [PrunedTree(), SVM(), RandomForest()],
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
       # Machine learner that trains on set of learners' outputs.
-      :stacker => SVM(),
+      :stacker => RandomForest(),
       # Proportion of training set left to train stacker itself.
       :stacker_training_proportion => 0.3,
       # Provide original features on top of learner outputs to stacker.
