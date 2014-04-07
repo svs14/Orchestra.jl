@@ -1,6 +1,6 @@
 module TestSelectionMethods
 
-include("fixture_learners.jl")
+include(joinpath("..", "fixture_learners.jl"))
 importall .FixtureLearners
 
 using FactCheck

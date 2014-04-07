@@ -7,8 +7,23 @@ export Learner,
        DecisionStumpAdaboost,
        VoteEnsemble, 
        StackEnsemble,
-       SVM,
        BestLearnerSelection,
+       SKLLearner,
+       SKLRandomForest,
+       SKLExtraTrees,
+       SKLGradientBoosting,
+       SKLLogisticRegression,
+       SKLPassiveAggressive,
+       SKLRidge,
+       SKLRidgeCV,
+       SKLSGD,
+       SKLKNeighbors,
+       SKLRadiusNeighbors,
+       SKLNearestCentroid,
+       SKLSVC,
+       SKLLinearSVC,
+       SKLNuSVC,
+       SKLDecisionTree,
        train!,
        predict!,
        score
@@ -19,13 +34,15 @@ importall Orchestra.AbstractLearner
 # Include atomic Julia learners
 include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
-include(joinpath("julia", "libsvm.jl"))
-importall .LIBSVMWrapper
+
+# Include atomic Python learners
+include(joinpath("python", "scikit_learn.jl"))
+importall .ScikitLearnWrapper
 
 # Include aggregate learners last, dependent on atomic learners
-include(joinpath("julia", "ensemble.jl"))
+include(joinpath("orchestra", "ensemble.jl"))
 importall .EnsembleMethods
-include(joinpath("julia", "selection.jl"))
+include(joinpath("orchestra", "selection.jl"))
 importall .SelectionMethods
 
 end # module

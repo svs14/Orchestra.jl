@@ -37,7 +37,7 @@ result = score(learner, test_instances, test_labels, predictions)
 ### Try another Learner
 
 ```julia
-learner = SVM()
+learner = DecisionStumpAdaboost()
 ```
 
 ### ... More
@@ -49,26 +49,36 @@ learner = RandomForest()
 ### Which is best? Machine decides
 
 ```julia
-learner = BestLearnerSelection({:learners => [PrunedTree(), SVM(), RandomForest()]})
+learner = BestLearnerSelection({
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
 ```
 
 ### Why even choose? Majority rules
 
 ```julia
-learner = VoteEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()]})
+learner = VoteEnsemble({
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
 ```
 
 ### A Learner on a Learner? We have to go Deeper
 
 ```julia
-learner = StackEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()], :stacker => SVM()})
+learner = StackEnsemble({
+    :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()], 
+    :stacker => DecisionStumpAdaboost()
+})
 ```
 
 ### Ensemble of Ensembles of Ensembles
 
 ```julia
 ensemble_1 = RandomForest()
-ensemble_2 = StackEnsemble({:learners => [PrunedTree(), SVM()], :stacker => SVM()})
+ensemble_2 = StackEnsemble({
+  :learners => [PrunedTree(), DecisionStumpAdaboost()], 
+  :stacker => DecisionStumpAdaboost()
+})
 ensemble_3 = VoteEnsemble({:learners => [ensemble_1, ensemble_2]})
 ensemble_4 = VoteEnsemble()
 learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
@@ -78,16 +88,31 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ## Available Learners
 
-| Learner               | Library         | Constraints      | Metrics  | Description                       |
-|-----------------------|-----------------|------------------|----------|-----------------------------------|
-| SVM                   | LIBSVM.jl       | Numeric features | accuracy | Support Vector Machines.          |
-| PrunedTree            | DecisionTree.jl |                  | accuracy | C4.5 Decision Tree.               |
-| RandomForest          | DecisionTree.jl |                  | accuracy | C4.5 Random Forest.               |
-| DecisionStumpAdaboost | DecisionTree.jl |                  | accuracy | C4.5 Adaboosted Decision Stumps.  |
-| VoteEnsemble          | Orchestra.jl    |                  | accuracy | Majority Vote Ensemble.           |
-| StackEnsemble         | Orchestra.jl    |                  | accuracy | Stack Ensemble.                   |
-| BestLearnerSelection  | Orchestra.jl    |                  | accuracy | Selects best learner out of pool. |
+Python's scikit-learn 0.14 must be installed to run SKL prefixed learners.
 
+| Learner               | Library         | Constraints | Metrics  | Description                                      |
+|-----------------------|-----------------|-------------|----------|--------------------------------------------------|
+| PrunedTree            | DecisionTree.jl |             | accuracy | C4.5 Decision Tree.                              |
+| RandomForest          | DecisionTree.jl |             | accuracy | C4.5 Random Forest.                              |
+| DecisionStumpAdaboost | DecisionTree.jl |             | accuracy | C4.5 Adaboosted Decision Stumps.                 |
+| VoteEnsemble          | Orchestra.jl    |             | accuracy | Majority Vote Ensemble.                          |
+| StackEnsemble         | Orchestra.jl    |             | accuracy | Stack Ensemble.                                  |
+| BestLearnerSelection  | Orchestra.jl    |             | accuracy | Selects best learner out of pool.                |
+| SKLRandomForest       | scikit-learn    |             | accuracy | Random Forest.                                   |
+| SKLExtraTrees         | scikit-learn    |             | accuracy | Extra-trees.                                     |
+| SKLGradientBoosting   | scikit-learn    |             | accuracy | Gradient Boosting Machine.                       |
+| SKLLogisticRegression | scikit-learn    |             | accuracy | Logistic Regression.                             |
+| SKLPassiveAggressive  | scikit-learn    |             | accuracy | Passive Aggressive.                              |
+| SKLRidge              | scikit-learn    |             | accuracy | Ridge classifier.                                |
+| SKLRidgeCV            | scikit-learn    |             | accuracy | Ridge classifier with in-built Cross Validation. |
+| SKLSGD                | scikit-learn    |             | accuracy | Linear classifiers with SGD training.            |
+| SKLKNeighbors         | scikit-learn    |             | accuracy | K Nearest Neighbors                              |
+| SKLRadiusNeighbors    | scikit-learn    |             | accuracy | Within Radius Neighbors Vote.                    |
+| SKLNearestCentroid    | scikit-learn    |             | accuracy | Nearest Centroid.                                |
+| SKLSVC                | scikit-learn    |             | accuracy | C-Support Vector Classifier.                     |
+| SKLLinearSVC          | scikit-learn    |             | accuracy | Linear Support Vector Classifier.                |
+| SKLNuSVC              | scikit-learn    |             | accuracy | Nu-Support Vector Classifier.                    |
+| SKLDecisionTree       | scikit-learn    |             | accuracy | Decision Tree.                                   |
 ## Changes
 
 See [CHANGELOG.yml](CHANGELOG.yml).

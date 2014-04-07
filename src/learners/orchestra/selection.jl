@@ -7,7 +7,7 @@ import Orchestra.Util: kfold
 import Orchestra.Learners.DecisionTreeWrapper: train!, predict!
 import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
 import Orchestra.Learners.DecisionTreeWrapper: RandomForest
-import Orchestra.Learners.LIBSVMWrapper: SVM, train!, predict!
+import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
 
 export BestLearnerSelection, 
        train!, 
@@ -28,7 +28,7 @@ export BestLearnerSelection,
 #   # Score type returned by score() using respective metric.
 #   :score_type => Real
 #   # Candidate learners.
-#   :learners => [PrunedTree(), SVM(), RandomForest()]
+#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 # }
 # </pre>
 type BestLearnerSelection <: Learner
@@ -48,7 +48,7 @@ type BestLearnerSelection <: Learner
       # Score type returned by score() using respective metric.
       :score_type => Real,
       # Candidate learners.
-      :learners => [PrunedTree(), SVM(), RandomForest()]
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
     }
     new(nothing, merge(default_options, options)) 
   end
