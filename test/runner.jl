@@ -4,10 +4,10 @@ module TestRunner
 
   include("test_abstractlearner.jl")
   include("test_util.jl")
-  include("learners/julia/test_decisiontree.jl")
-  include("learners/orchestra/test_ensemble.jl")
-  include("learners/orchestra/test_selection.jl")
-  # include("learners/python/test_scikit_learn.jl")
+  include(joinpath("learners", "julia", "test_decisiontree.jl"))
+  include(joinpath("learners", "orchestra", "test_ensemble.jl"))
+  include(joinpath("learners", "orchestra", "test_selection.jl"))
+  include(joinpath("learners", "python", "test_scikit_learn.jl"))
 
   exitstatus()
 end # module

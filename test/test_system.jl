@@ -22,7 +22,7 @@ end
 #              Otherwise test learners will be included.
 concrete_learner_types = all_concrete_subtypes(Learner)
 
-include("learners/fixture_learners.jl")
+include(joinpath("learners", "fixture_learners.jl"))
 import .FixtureLearners
 FL = FixtureLearners
 
