@@ -61,6 +61,17 @@ facts("Orchestra system", using_fixtures) do
     @fact 1 => 1
   end
 
+  context("Ensemble with learners from different libraries work.", using_fixtures) do 
+    learners = [
+      RandomForest(), 
+      StackEnsemble(),
+      SKLSVC()
+    ]
+    ensemble = VoteEnsemble({:learners => learners})
+    predictions = FL.train_and_predict!(ensemble)
+
+    @fact 1 => 1
+  end
 end
 
 end # module
