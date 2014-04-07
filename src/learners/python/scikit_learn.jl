@@ -26,15 +26,13 @@ export SKLRandomForest,
 abstract SKLLearner <: Learner
 
 macro build_train!_func(orchestra_name, scikit_learner_name)
-esc(
-  quote
+  @eval begin
     function train!(on::$orchestra_name, instances::Matrix, labels::Vector)
       impl_options = on.options[:impl_options]
       on.model = $scikit_learner_name(;impl_options...)
       on.model[:fit](instances, labels)
     end
   end
-)
 end
 
 function predict!(skll::SKLLearner, instances::Matrix)

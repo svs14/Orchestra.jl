@@ -6,6 +6,7 @@ export train_instances,
        test_instances,
        train_labels,
        test_labels,
+       train_and_predict!,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
        train!,
@@ -39,6 +40,12 @@ train_instances = convert(Array{Real, 2}, train_dataset[:, 1:end-1])
 test_instances = convert(Array{Real, 2}, test_dataset[:, 1:end-1])
 train_labels = convert(Array{String, 1}, train_dataset[:, end])
 test_labels = convert(Array{String, 1}, test_dataset[:, end])
+
+function train_and_predict!(learner::Learner)
+    srand(1)
+    train!(learner, train_instances, train_labels)
+    return predict!(learner, test_instances)
+end
 
 type PerfectScoreLearner <: Learner
   model
