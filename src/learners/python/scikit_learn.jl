@@ -9,7 +9,8 @@ using PyCall
 @pyimport sklearn.svm as SVM
 @pyimport sklearn.tree as TREE
 
-export SKLRandomForest,
+export SKLLearner,
+       SKLRandomForest,
        SKLExtraTrees,
        SKLGradientBoosting,
        SKLLogisticRegression,
