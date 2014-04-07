@@ -13,6 +13,8 @@ using PyCall
 @pyimport sklearn.linear_model as LM
 @pyimport random as RAN
 @pyimport sklearn.neighbors as NN
+@pyimport sklearn.svm as SVM
+@pyimport sklearn.tree as TREE
 
 
 function skl_train_and_predict!(learner::Learner)
@@ -59,7 +61,6 @@ facts("scikit-learn learners", using_fixtures) do
   end
 
   context("SKLLogisticRegression gives same results as its backend", using_fixtures) do
-    # Predict with Orchestra learner
     learner = SKLLogisticRegression()
     sk_learner = LM.LogisticRegression()
     behavior_check(learner, sk_learner)
@@ -103,12 +104,34 @@ facts("scikit-learn learners", using_fixtures) do
   end
 
   context("SKLNearestCentroid gives same results as its backend", using_fixtures) do
-    # Predict with Orchestra learner
     learner = SKLNearestCentroid()
     sk_learner = NN.NearestCentroid()
     behavior_check(learner, sk_learner)
   end
 
+  context("SKLSVC gives same results as its backend", using_fixtures) do
+    learner = SKLSVC()
+    sk_learner = SVM.SVC()
+    behavior_check(learner, sk_learner)
+  end
+
+  context("SKLLinearSVC gives same results as its backend", using_fixtures) do
+    learner = SKLLinearSVC()
+    sk_learner = SVM.LinearSVC()
+    behavior_check(learner, sk_learner)
+  end
+
+  context("SKLNuSVC gives same results as its backend", using_fixtures) do
+    learner = SKLNuSVC()
+    sk_learner = SVM.NuSVC()
+    behavior_check(learner, sk_learner)
+  end
+
+  context("SKLDecisionTree gives same results as its backend", using_fixtures) do
+    learner = SKLDecisionTree()
+    sk_learner = TREE.DecisionTreeClassifier()
+    behavior_check(learner, sk_learner)
+  end
 end
 
 end # module

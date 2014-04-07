@@ -6,6 +6,8 @@ using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM
 @pyimport sklearn.neighbors as NN
+@pyimport sklearn.svm as SVM
+@pyimport sklearn.tree as TREE
 
 export SKLRandomForest,
        SKLExtraTrees,
@@ -18,6 +20,10 @@ export SKLRandomForest,
        SKLKNeighbors,
        SKLRadiusNeighbors,
        SKLNearestCentroid,
+       SKLSVC,
+       SKLLinearSVC,
+       SKLNuSVC,
+       SKLDecisionTree,
        train!,
        predict!
 
@@ -74,11 +80,8 @@ type SKLRandomForest <: SKLLearner
         # The number of jobs to run in parallel for both fit and predict. 
         # If -1, then the number of jobs is set to the number of cores.
         :n_jobs => 1,
-        # If Int, random_state is the seed used by the random number generator. 
-        # If Python RandomState instance, 
-        # random_state is the random number generator.
-        # If nothing, the random number generator 
-        # is the Python RandomState instance used by Python np.random. 
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
         # (Int, Python RandomState, nothing)
         :random_state => nothing,
         # Controls the verbosity of the tree building process.
@@ -127,11 +130,8 @@ type SKLExtraTrees <: SKLLearner
         # The number of jobs to run in parallel for both fit and predict. 
         # If -1, then the number of jobs is set to the number of cores.
         :n_jobs => 1,
-        # If Int, random_state is the seed used by the random number generator. 
-        # If Python RandomState instance, 
-        # random_state is the random number generator.
-        # If nothing, the random number generator 
-        # is the Python RandomState instance used by Python np.random. 
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
         # (Int, Python RandomState, nothing)
         :random_state => nothing,
         # Controls the verbosity of the tree building process.
@@ -258,6 +258,7 @@ type SKLPassiveAggressive <: SKLLearner
         :n_jobs => 1,
         # The seed of the pseudo random number generator to use when shuffling
         # the data.
+        # (Int, Python RandomState, nothing)
         :random_state => nothing,
         # When set to True, reuse the solution of the previous call to fit as
         # initialization, otherwise, just erase the previous solution.
@@ -548,6 +549,203 @@ type SKLNearestCentroid <: SKLLearner
 end
 
 @build_train!_func SKLNearestCentroid NN.NearestCentroid
+
+
+type SKLSVC <: SKLLearner
+  model
+  options
+  
+  function SKLSVC(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Penalty parameter C of the error term.
+        :C => 1.0,
+        # Specifies the kernel type to be used in the algorithm.
+        # ("linear", "poly", "rbf", "sigmoid", "precomputed", Python callable)
+        :kernel => "rbf",
+        # Degree of the polynomial kernel function (‘poly’). Ignored by all
+        # other kernels.
+        :degree => 3,
+        # Kernel coefficient for ‘rbf’, ‘poly’ and ‘sigm’. If gamma is 0.0 then
+        # 1/n_features will be used instead.
+        :gamma => 0.0,
+        # Independent term in kernel function. It is only significant in ‘poly’
+        # and ‘sigmoid’.
+        :coef0 => 0.0,
+        # Whether to use the shrinking heuristic.
+        :shrinking => true,
+        # Whether to enable probability estimates. This must be enabled prior to
+        # calling fit, and will slow down that method.
+        :probability => false,
+        # Tolerance for stopping criterion.
+        :tol => 0.001,
+        # Specify the size of the kernel cache (in MB)
+        :cache_size => 200,
+        # Very Python specific (see original sci-kit learn documentation).
+        :class_weight => nothing,
+        # Enable verbose output.
+        :verbose => false,
+        # Hard limit on iterations within solver, or -1 for no limit.
+        :max_iter => -1,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        # (Int, Python RandomState, nothing)
+        :random_state => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+@build_train!_func SKLSVC SVM.SVC
+
+
+type SKLLinearSVC <: SKLLearner
+  model
+  options
+  
+  function SKLLinearSVC(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # Specifies the norm used in the penalization. 
+        # ("l1", "l2")
+        :penalty => "l2",
+        # Specifies the loss function.
+        # ("l1", "l2")
+        :loss => "l2",
+        # Select the algorithm to either solve the dual or primal optimization
+        # problem.
+        :dual => true,
+        # Tolerance for stopping criteria.
+        :tol => 0.0001,
+        # Penalty parameter C of the error term.
+        :C => 1.0,
+        # Determines the multi-class strategy if y contains more than two
+        # classes.
+        # ("ovr", "crammer_singer")
+        :multi_class => "ovr",
+        # Whether to calculate the intercept for this model. 
+        :fit_intercept => true,
+        # TODO(svs14): Simplify explanation sci-kit learn provides.
+        :intercept_scaling => 1,
+        # TODO(svs14): Simplify explanation sci-kit learn provides.
+        :class_weight => nothing,
+        # Enable verbose output.
+        :verbose => 0,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        # (Int, Python RandomState, nothing)
+        :random_state => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+@build_train!_func SKLLinearSVC SVM.LinearSVC
+
+
+type SKLNuSVC <: SKLLearner
+  model
+  options
+  
+  function SKLNuSVC(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # An upper bound on the fraction of training errors and a lower bound of
+        # the fraction of support vectors. Should be in the interval (0, 1].
+        :nu => 0.5,
+        # Specifies the kernel type to be used in the algorithm.
+        # ("linear", "poly", "rbf", "sigmoid", "precomputed", Python callable)
+        :kernel => "rbf",
+        # Degree of kernel function is significant only in poly, rbf, sigmoid.
+        :degree => 3,
+        # Kernel coefficient for rbf and poly, if gamma is 0.0 then 1/n_features
+        # will be taken.
+        :gamma => 0.0,
+        # Independent term in kernel function. It is only significant in
+        # poly/sigmoid.
+        :coef0 => 0.0,
+        # Whether to use the shrinking heuristic.
+        :shrinking => true,
+        # Whether to enable probability estimates. This must be enabled prior to
+        # calling fit, and will slow down that method.
+        :probability => false,
+        # Tolerance for stopping criterion.
+        :tol => 0.001,
+        # Specify the size of the kernel cache (in MB).
+        :cache_size => 200,
+        # Enable verbose output.
+        :verbose => false,
+        # Hard limit on iterations within solver, or -1 for no limit.
+        :max_iter => -1,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        # (Int, Python RandomState, nothing)
+        :random_state => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+@build_train!_func SKLNuSVC SVM.NuSVC
+
+
+type SKLDecisionTree <: SKLLearner
+  model
+  options
+  
+  function SKLDecisionTree(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Options specific to this implementation.
+      :impl_options => {
+        # The function to measure the quality of a split.
+        # ("gini", "entropy")
+        :criterion => "gini",
+        # Undocumented.
+        :splitter => "best",
+        # The maximum depth of the tree. If None, then nodes are expanded until
+        # all leaves are pure or until all leaves contain less than
+        # min_samples_split samples.
+        :max_depth => nothing,
+        # The minimum number of samples required to split an internal node.
+        :min_samples_split => 2,
+        # The minimum number of samples required to be at a leaf node.
+        :min_samples_leaf => 1,
+        # Number of features to consider when looking for the best split.
+        # (Int, Float - acts as percentage, "auto", "sqrt", "log2", nothing)
+        :max_features => nothing,
+        # The seed of the pseudo random number generator to use when shuffling
+        # the data.
+        # (Int, Python RandomState, nothing)
+        :random_state => nothing,
+        # Undocumented.
+        :min_density => nothing,
+        # Undocumented.
+        :compute_importances => nothing
+      },
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+@build_train!_func SKLDecisionTree TREE.DecisionTreeClassifier
 
 
 end # module
