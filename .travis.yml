@@ -13,7 +13,7 @@ before_install:
   - sudo apt-get update -qq -y
   - sudo apt-get install libpcre3-dev julia -y
   - sudo apt-get build-dep python-sklearn -y
-  - sudo pip -U install scikit-learn
+  - sudo pip install -U scikit-learn
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Orchestra"))`); Pkg.pin("Orchestra"); Pkg.resolve()'
   - julia -e 'using Orchestra; @assert isdefined(:Orchestra); @assert typeof(Orchestra) === Module'
