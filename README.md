@@ -37,7 +37,7 @@ result = score(learner, test_instances, test_labels, predictions)
 ### Try another Learner
 
 ```julia
-learner = SVM()
+learner = DecisionStumpAdaboost()
 ```
 
 ### ... More
@@ -49,26 +49,36 @@ learner = RandomForest()
 ### Which is best? Machine decides
 
 ```julia
-learner = BestLearnerSelection({:learners => [PrunedTree(), SVM(), RandomForest()]})
+learner = BestLearnerSelection({
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
 ```
 
 ### Why even choose? Majority rules
 
 ```julia
-learner = VoteEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()]})
+learner = VoteEnsemble({
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
 ```
 
 ### A Learner on a Learner? We have to go Deeper
 
 ```julia
-learner = StackEnsemble({:learners => [PrunedTree(), SVM(), RandomForest()], :stacker => SVM()})
+learner = StackEnsemble({
+    :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()], 
+    :stacker => DecisionStumpAdaboost()
+})
 ```
 
 ### Ensemble of Ensembles of Ensembles
 
 ```julia
 ensemble_1 = RandomForest()
-ensemble_2 = StackEnsemble({:learners => [PrunedTree(), SVM()], :stacker => SVM()})
+ensemble_2 = StackEnsemble({
+  :learners => [PrunedTree(), DecisionStumpAdaboost()], 
+  :stacker => DecisionStumpAdaboost()
+})
 ensemble_3 = VoteEnsemble({:learners => [ensemble_1, ensemble_2]})
 ensemble_4 = VoteEnsemble()
 learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
@@ -80,7 +90,6 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 | Learner               | Library         | Constraints      | Metrics  | Description                       |
 |-----------------------|-----------------|------------------|----------|-----------------------------------|
-| SVM                   | LIBSVM.jl       | Numeric features | accuracy | Support Vector Machines.          |
 | PrunedTree            | DecisionTree.jl |                  | accuracy | C4.5 Decision Tree.               |
 | RandomForest          | DecisionTree.jl |                  | accuracy | C4.5 Random Forest.               |
 | DecisionStumpAdaboost | DecisionTree.jl |                  | accuracy | C4.5 Adaboosted Decision Stumps.  |
