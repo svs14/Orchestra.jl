@@ -21,7 +21,27 @@ export SKLRandomForest,
        train!,
        predict!
 
-type SKLRandomForest <: Learner
+# SKLLearners have field 'model' of which
+# corresponds to a Python BaseEstimator in scikit-learn.
+abstract SKLLearner <: Learner
+
+macro build_train!_func(orchestra_name, scikit_learner_name)
+esc(
+  quote
+    function train!(on::$orchestra_name, instances::Matrix, labels::Vector)
+      impl_options = on.options[:impl_options]
+      on.model = $scikit_learner_name(;impl_options...)
+      on.model[:fit](instances, labels)
+    end
+  end
+)
+end
+
+function predict!(skll::SKLLearner, instances::Matrix)
+  return collect(skll.model[:predict](instances))
+end
+
+type SKLRandomForest <: SKLLearner
   model
   options
   
@@ -71,18 +91,10 @@ type SKLRandomForest <: Learner
   end
 end
 
-function train!(rf::SKLRandomForest, instances::Matrix, labels::Vector)
-  impl_options = rf.options[:impl_options]
-  rf.model = ENS.RandomForestClassifier(;impl_options...)
-  rf.model[:fit](instances, labels)
-end
-
-function predict!(rf::SKLRandomForest, instances::Matrix)
-  return collect(rf.model[:predict](instances))
-end
+@build_train!_func SKLRandomForest ENS.RandomForestClassifier
 
 
-type SKLExtraTrees <: Learner
+type SKLExtraTrees <: SKLLearner
   model
   options
   
@@ -132,18 +144,10 @@ type SKLExtraTrees <: Learner
   end
 end
 
-function train!(et::SKLExtraTrees, instances::Matrix, labels::Vector)
-  impl_options = et.options[:impl_options]
-  et.model = ENS.ExtraTreesClassifier(;impl_options...)
-  et.model[:fit](instances, labels)
-end
-
-function predict!(et::SKLExtraTrees, instances::Matrix)
-  return collect(et.model[:predict](instances))
-end
+@build_train!_func SKLExtraTrees ENS.ExtraTreesClassifier
 
 
-type SKLGradientBoosting <: Learner
+type SKLGradientBoosting <: SKLLearner
   model
   options
   
@@ -185,18 +189,10 @@ type SKLGradientBoosting <: Learner
   end
 end
 
-function train!(gb::SKLGradientBoosting, instances::Matrix, labels::Vector)
-  impl_options = gb.options[:impl_options]
-  gb.model = ENS.GradientBoostingClassifier(;impl_options...)
-  gb.model[:fit](instances, labels)
-end
-
-function predict!(gb::SKLGradientBoosting, instances::Matrix)
-  return collect(gb.model[:predict](instances))
-end
+@build_train!_func SKLGradientBoosting ENS.GradientBoostingClassifier
 
 
-type SKLLogisticRegression <: Learner
+type SKLLogisticRegression <: SKLLearner
   model
   options
   
@@ -232,19 +228,10 @@ type SKLLogisticRegression <: Learner
   end
 end
 
-
-function train!(lr::SKLLogisticRegression, instances::Matrix, labels::Vector)
-  impl_options = lr.options[:impl_options]
-  lr.model = LM.LogisticRegression(;impl_options...)
-  lr.model[:fit](instances, labels)
-end
-
-function predict!(lr::SKLLogisticRegression, instances::Matrix)
-  return collect(lr.model[:predict](instances))
-end
+@build_train!_func SKLLogisticRegression LM.LogisticRegression
 
 
-type SKLPassiveAggressive <: Learner
+type SKLPassiveAggressive <: SKLLearner
   model
   options
   
@@ -283,18 +270,10 @@ type SKLPassiveAggressive <: Learner
   end
 end
 
-function train!(pa::SKLPassiveAggressive, instances::Matrix, labels::Vector)
-  impl_options = pa.options[:impl_options]
-  pa.model = LM.PassiveAggressiveClassifier(;impl_options...)
-  pa.model[:fit](instances, labels)
-end
-
-function predict!(pa::SKLPassiveAggressive, instances::Matrix)
-  return collect(pa.model[:predict](instances))
-end
+@build_train!_func SKLPassiveAggressive LM.PassiveAggressiveClassifier
 
 
-type SKLRidge <: Learner
+type SKLRidge <: SKLLearner
   model
   options
   
@@ -337,18 +316,10 @@ type SKLRidge <: Learner
   end
 end
 
-function train!(ri::SKLRidge, instances::Matrix, labels::Vector)
-  impl_options = ri.options[:impl_options]
-  ri.model = LM.RidgeClassifier(;impl_options...)
-  ri.model[:fit](instances, labels)
-end
-
-function predict!(ri::SKLRidge, instances::Matrix)
-  return collect(ri.model[:predict](instances))
-end
+@build_train!_func SKLRidge LM.RidgeClassifier
 
 
-type SKLRidgeCV <: Learner
+type SKLRidgeCV <: SKLLearner
   model
   options
   
@@ -381,18 +352,10 @@ type SKLRidgeCV <: Learner
   end
 end
 
-function train!(rcv::SKLRidgeCV, instances::Matrix, labels::Vector)
-  impl_options = rcv.options[:impl_options]
-  rcv.model = LM.RidgeClassifierCV(;impl_options...)
-  rcv.model[:fit](instances, labels)
-end
-
-function predict!(rcv::SKLRidgeCV, instances::Matrix)
-  return collect(rcv.model[:predict](instances))
-end
+@build_train!_func SKLRidgeCV LM.RidgeClassifierCV
 
 
-type SKLSGD <: Learner
+type SKLSGD <: SKLLearner
   model
   options
   
@@ -466,18 +429,10 @@ type SKLSGD <: Learner
   end
 end
 
-function train!(sgd::SKLSGD, instances::Matrix, labels::Vector)
-  impl_options = sgd.options[:impl_options]
-  sgd.model = LM.SGDClassifier(;impl_options...)
-  sgd.model[:fit](instances, labels)
-end
-
-function predict!(sgd::SKLSGD, instances::Matrix)
-  return collect(sgd.model[:predict](instances))
-end
+@build_train!_func SKLSGD LM.SGDClassifier
 
 
-type SKLKNeighbors <: Learner
+type SKLKNeighbors <: SKLLearner
   model
   options
   
@@ -512,18 +467,10 @@ type SKLKNeighbors <: Learner
   end
 end
 
-function train!(nn::SKLKNeighbors, instances::Matrix, labels::Vector)
-  impl_options = nn.options[:impl_options]
-  nn.model = NN.KNeighborsClassifier(;impl_options...)
-  nn.model[:fit](instances, labels)
-end
-
-function predict!(nn::SKLKNeighbors, instances::Matrix)
-  return collect(nn.model[:predict](instances))
-end
+@build_train!_func SKLKNeighbors NN.KNeighborsClassifier
 
 
-type SKLRadiusNeighbors <: Learner
+type SKLRadiusNeighbors <: SKLLearner
   model
   options
   
@@ -579,12 +526,8 @@ function train!(rn::SKLRadiusNeighbors, instances::Matrix, labels::Vector)
   rn.model[:fit](instances, labels)
 end
 
-function predict!(rn::SKLRadiusNeighbors, instances::Matrix)
-  return collect(rn.model[:predict](instances))
-end
 
-
-type SKLNearestCentroid <: Learner
+type SKLNearestCentroid <: SKLLearner
   model
   options
   
@@ -606,14 +549,7 @@ type SKLNearestCentroid <: Learner
   end
 end
 
-function train!(nc::SKLNearestCentroid, instances::Matrix, labels::Vector)
-  impl_options = nc.options[:impl_options]
-  nc.model = NN.NearestCentroid(;impl_options...)
-  nc.model[:fit](instances, labels)
-end
+@build_train!_func SKLNearestCentroid NN.NearestCentroid
 
-function predict!(nc::SKLNearestCentroid, instances::Matrix)
-  return collect(nc.model[:predict](instances))
-end
 
 end # module
