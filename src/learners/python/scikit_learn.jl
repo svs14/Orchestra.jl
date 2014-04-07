@@ -819,7 +819,7 @@ end
 
 @build_train!_func SKLKNeighbors NN.KNeighborsClassifier
 
-# K nearest neighbors within radius.
+# Within radius neighbors vote.
 #
 # <pre>
 # default_options = {
