@@ -40,9 +40,9 @@ include(joinpath("python", "scikit_learn.jl"))
 importall .ScikitLearnWrapper
 
 # Include aggregate learners last, dependent on atomic learners
-include(joinpath("julia", "ensemble.jl"))
+include(joinpath("orchestra", "ensemble.jl"))
 importall .EnsembleMethods
-include(joinpath("julia", "selection.jl"))
+include(joinpath("orchestra", "selection.jl"))
 importall .SelectionMethods
 
 end # module
