@@ -1,6 +1,9 @@
 %YAML 1.2
 ---
 changes:
+  v0.0.2:
+    - Integrated Python's scikit-learn machine learners.
+    - Removal of an SVM learner due to segmentation fault.
   v0.0.1:
     - Fix for stack ensemble.
   v0.0.0:
