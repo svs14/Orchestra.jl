@@ -88,7 +88,15 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ## Available Learners
 
-Python's scikit-learn 0.14 must be installed to run SKL prefixed learners.
+### Julia
+
+### Orchestra
+
+### Python
+
+
+### R
+
 
 | Learner               | Library         | Constraints | Metrics  | Description                                      |
 |-----------------------|-----------------|-------------|----------|--------------------------------------------------|
