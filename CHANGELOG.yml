@@ -1,6 +1,8 @@
 %YAML 1.2
 ---
 changes:
+  v0.0.3:
+    - Integrated R's caret machine learners.
   v0.0.2:
     - Integrated Python's scikit-learn machine learners.
     - Removal of an SVM learner due to segmentation fault.
