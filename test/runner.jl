@@ -8,6 +8,7 @@ module TestRunner
   include(joinpath("learners", "orchestra", "test_ensemble.jl"))
   include(joinpath("learners", "orchestra", "test_selection.jl"))
   include(joinpath("learners", "python", "test_scikit_learn.jl"))
+  include(joinpath("learners", "r", "test_caret.jl"))
 
   exitstatus()
 end # module

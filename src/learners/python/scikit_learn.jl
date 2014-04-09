@@ -46,7 +46,6 @@ function predict!(skll::SKLLearner, instances::Matrix)
   return collect(skll.model[:predict](instances))
 end
 
-
 # Random forest.
 # 
 # <pre>

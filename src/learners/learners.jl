@@ -24,6 +24,7 @@ export Learner,
        SKLLinearSVC,
        SKLNuSVC,
        SKLDecisionTree,
+       CRTWrapper,
        train!,
        predict!,
        score
@@ -38,6 +39,10 @@ importall .DecisionTreeWrapper
 # Include atomic Python learners
 include(joinpath("python", "scikit_learn.jl"))
 importall .ScikitLearnWrapper
+
+# Include atomic R learners
+include(joinpath("r", "caret.jl"))
+importall .CaretWrapper
 
 # Include aggregate learners last, dependent on atomic learners
 include(joinpath("orchestra", "ensemble.jl"))
