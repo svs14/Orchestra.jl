@@ -5,8 +5,6 @@ compiler:
 notifications:
   email: false
 env:
-  global:
-    - R_LIBS_USER=~/R
   matrix: 
     # - JULIAVERSION="juliareleases" Require Julia 0.3 or greater.
     - JULIAVERSION="julianightlies" 
@@ -19,18 +17,6 @@ before_install:
   # Install Python scikit-learn
   - sudo apt-get build-dep python-sklearn -y
   - sudo pip install -U scikit-learn
-  # Install R
-  - sudo apt-add-repository -y "deb http://cran.rstudio.com/bin/linux/ubuntu `lsb_release -cs`/"
-  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
-  - sudo apt-add-repository -y ppa:marutter/c2d4u
-  - sudo apt-get update -qq -y
-  - sudo apt-get install r-base-dev r-recommended
-  - "[ ! -d ${R_LIBS_USER} ] && mkdir ${R_LIBS_USER}"
-  # Install R Caret
-  - Rscript -e 'install.packages("caret", dependencies = c("Depends", "Suggests"), repos="http://cran.rstudio.com/")'
-  # Install RPy2
-  - sudo apt-get build-dep python-rpy2 -y
-  - sudo pip install rpy2
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Orchestra"))`); Pkg.pin("Orchestra"); Pkg.resolve()'
   - julia -e 'using Orchestra; @assert isdefined(:Orchestra); @assert typeof(Orchestra) === Module'

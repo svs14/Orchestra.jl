@@ -61,6 +61,9 @@ end
 
 
 # CARET wrapper that provides access to all learners.
+# 
+# Options for the specific CARET learner is to be passed
+# in options[:impl_options] dictionary.
 type CRTWrapper <: Learner
   model
   options
@@ -93,7 +96,6 @@ function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
   r_fit_control = pycall(RO.r[:trainControl], PyObject,
     method = "none"
   )
-
   if isempty(impl_options)
     r_model = pycall(RO.r[:train], PyObject,
       caret_formula,
