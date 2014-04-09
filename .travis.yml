@@ -27,7 +27,7 @@ before_install:
   - sudo apt-get install r-base-dev r-recommended
   - "[ ! -d ${R_LIBS_USER} ] && mkdir ${R_LIBS_USER}"
   # Install R Caret
-  - Rscript -e 'install.packages("caret", dependencies = c("Depends", "Suggests"))'
+  - Rscript -e 'install.packages("caret", dependencies = c("Depends", "Suggests"), repos="http://cran.rstudio.com/")'
   # Install RPy2
   - sudo pip install rpy2
 script:
