@@ -65,7 +65,8 @@ facts("Orchestra system", using_fixtures) do
     learners = [
       RandomForest(), 
       StackEnsemble(),
-      SKLSVC()
+      SKLSVC(),
+      CRTWrapper()
     ]
     ensemble = VoteEnsemble({:learners => learners})
     predictions = FL.train_and_predict!(ensemble)

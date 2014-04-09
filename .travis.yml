@@ -29,6 +29,7 @@ before_install:
   # Install R Caret
   - Rscript -e 'install.packages("caret", dependencies = c("Depends", "Suggests"), repos="http://cran.rstudio.com/")'
   # Install RPy2
+  - sudo apt-get build-dep python-rpy2 -y
   - sudo pip install rpy2
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Orchestra"))`); Pkg.pin("Orchestra"); Pkg.resolve()'

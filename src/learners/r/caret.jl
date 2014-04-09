@@ -93,13 +93,24 @@ function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
   r_fit_control = pycall(RO.r[:trainControl], PyObject,
     method = "none"
   )
-  r_model = pycall(RO.r[:train], PyObject,
-    caret_formula,
-    method = crtw.model[:learner],
-    data = r_dataset_df,
-    trControl = r_fit_control,
-    tuneLength = 1
-  )
+
+  if isempty(impl_options)
+    r_model = pycall(RO.r[:train], PyObject,
+      caret_formula,
+      method = crtw.model[:learner],
+      data = r_dataset_df,
+      trControl = r_fit_control,
+      tuneLength = 1
+    )
+  else
+    r_model = pycall(RO.r[:train], PyObject,
+      caret_formula,
+      method = crtw.model[:learner],
+      data = r_dataset_df,
+      trControl = r_fit_control,
+      tuneGrid = RO.DataFrame(impl_options)
+    )
+  end
   crtw.model[:r_model] = r_model
 end
 
