@@ -1,6 +1,6 @@
 # Orchestra
 
-[![Build Status](https://travis-ci.org/svs14/Orchestra.jl.png)](https://travis-ci.org/svs14/Orchestra.jl)
+[![Build Status](https://travis-ci.org/svs14/Orchestra.jl.svg?branch=master)](https://travis-ci.org/svs14/Orchestra.jl)
 
 Orchestra is a heterogeneous ensemble learning package for the Julia programming
 language. It is driven by a uniform machine learner API designed for learner
@@ -88,31 +88,70 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ## Available Learners
 
-Python's scikit-learn 0.14 must be installed to run SKL prefixed learners.
+### Julia
 
-| Learner               | Library         | Constraints | Metrics  | Description                                      |
-|-----------------------|-----------------|-------------|----------|--------------------------------------------------|
-| PrunedTree            | DecisionTree.jl |             | accuracy | C4.5 Decision Tree.                              |
-| RandomForest          | DecisionTree.jl |             | accuracy | C4.5 Random Forest.                              |
-| DecisionStumpAdaboost | DecisionTree.jl |             | accuracy | C4.5 Adaboosted Decision Stumps.                 |
-| VoteEnsemble          | Orchestra.jl    |             | accuracy | Majority Vote Ensemble.                          |
-| StackEnsemble         | Orchestra.jl    |             | accuracy | Stack Ensemble.                                  |
-| BestLearnerSelection  | Orchestra.jl    |             | accuracy | Selects best learner out of pool.                |
-| SKLRandomForest       | scikit-learn    |             | accuracy | Random Forest.                                   |
-| SKLExtraTrees         | scikit-learn    |             | accuracy | Extra-trees.                                     |
-| SKLGradientBoosting   | scikit-learn    |             | accuracy | Gradient Boosting Machine.                       |
-| SKLLogisticRegression | scikit-learn    |             | accuracy | Logistic Regression.                             |
-| SKLPassiveAggressive  | scikit-learn    |             | accuracy | Passive Aggressive.                              |
-| SKLRidge              | scikit-learn    |             | accuracy | Ridge classifier.                                |
-| SKLRidgeCV            | scikit-learn    |             | accuracy | Ridge classifier with in-built Cross Validation. |
-| SKLSGD                | scikit-learn    |             | accuracy | Linear classifiers with SGD training.            |
-| SKLKNeighbors         | scikit-learn    |             | accuracy | K Nearest Neighbors                              |
-| SKLRadiusNeighbors    | scikit-learn    |             | accuracy | Within Radius Neighbors Vote.                    |
-| SKLNearestCentroid    | scikit-learn    |             | accuracy | Nearest Centroid.                                |
-| SKLSVC                | scikit-learn    |             | accuracy | C-Support Vector Classifier.                     |
-| SKLLinearSVC          | scikit-learn    |             | accuracy | Linear Support Vector Classifier.                |
-| SKLNuSVC              | scikit-learn    |             | accuracy | Nu-Support Vector Classifier.                    |
-| SKLDecisionTree       | scikit-learn    |             | accuracy | Decision Tree.                                   |
+| Learner               | Library           | Metrics  | Description                                      |
+|-----------------------|-------------------|----------|--------------------------------------------------|
+| PrunedTree            | DecisionTree.jl   | accuracy | C4.5 Decision Tree.                              |
+| RandomForest          | DecisionTree.jl   | accuracy | C4.5 Random Forest.                              |
+| DecisionStumpAdaboost | DecisionTree.jl   | accuracy | C4.5 Adaboosted Decision Stumps.                 |
+
+
+### Orchestra
+
+| Learner               | Library           | Metrics  | Description                                      |
+|-----------------------|-------------------|----------|--------------------------------------------------|
+| VoteEnsemble          | Orchestra.jl      | accuracy | Majority Vote Ensemble.                          |
+| StackEnsemble         | Orchestra.jl      | accuracy | Stack Ensemble.                                  |
+| BestLearnerSelection  | Orchestra.jl      | accuracy | Selects best learner out of pool.                |
+
+
+### Python
+
+| Learner               | Library           | Metrics  | Description                                      |
+|-----------------------|-------------------|----------|--------------------------------------------------|
+| SKLRandomForest       | scikit-learn 0.14 | accuracy | Random Forest.                                   |
+| SKLExtraTrees         | scikit-learn 0.14 | accuracy | Extra-trees.                                     |
+| SKLGradientBoosting   | scikit-learn 0.14 | accuracy | Gradient Boosting Machine.                       |
+| SKLLogisticRegression | scikit-learn 0.14 | accuracy | Logistic Regression.                             |
+| SKLPassiveAggressive  | scikit-learn 0.14 | accuracy | Passive Aggressive.                              |
+| SKLRidge              | scikit-learn 0.14 | accuracy | Ridge classifier.                                |
+| SKLRidgeCV            | scikit-learn 0.14 | accuracy | Ridge classifier with in-built Cross Validation. |
+| SKLSGD                | scikit-learn 0.14 | accuracy | Linear classifiers with SGD training.            |
+| SKLKNeighbors         | scikit-learn 0.14 | accuracy | K Nearest Neighbors                              |
+| SKLRadiusNeighbors    | scikit-learn 0.14 | accuracy | Within Radius Neighbors Vote.                    |
+| SKLNearestCentroid    | scikit-learn 0.14 | accuracy | Nearest Centroid.                                |
+| SKLSVC                | scikit-learn 0.14 | accuracy | C-Support Vector Classifier.                     |
+| SKLLinearSVC          | scikit-learn 0.14 | accuracy | Linear Support Vector Classifier.                |
+| SKLNuSVC              | scikit-learn 0.14 | accuracy | Nu-Support Vector Classifier.                    |
+| SKLDecisionTree       | scikit-learn 0.14 | accuracy | Decision Tree.                                   |
+
+
+### R
+
+Python library 'rpy2' is required to interface with R.
+
+R library 'caret' offers more than 100 learners. 
+See [here](http://caret.r-forge.r-project.org/modelList.html) for more details.
+
+```julia
+# Example usage for using CARET.
+learner = CRTWrapper({
+  :learner => "svmLinear", 
+  :impl_options => {:C => 5.0}
+})
+```
+
+| Learner               | Library           | Metrics  | Description                                      |
+|-----------------------|-------------------|----------|--------------------------------------------------|
+| CRTWrapper            | caret 6.0         | accuracy | Wrapper to all CARET machine learners.           |
+
+## Known Limitations
+
+Learners have only been tested on instances with numeric features. 
+
+Inconsistencies may result in using nominal features directly without a numeric transformation (i.e. one-hot coding).
+
 ## Changes
 
 See [CHANGELOG.yml](CHANGELOG.yml).

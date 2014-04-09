@@ -1,7 +1,7 @@
 module TestScikitLearnWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
-importall .FixtureLearners
+using .FixtureLearners
 
 using FactCheck
 using Fixtures
@@ -43,8 +43,8 @@ end
 
 facts("scikit-learn learners", using_fixtures) do
   context("SKLRandomForest gives same results as its backend", using_fixtures) do
-    learner = SKLRandomForest()
-    sk_learner = ENS.RandomForestClassifier()
+    learner = SKLRandomForest({:impl_options => {:random_state => 1}})
+    sk_learner = ENS.RandomForestClassifier(random_state = 1)
     behavior_check(learner, sk_learner)
   end
 

@@ -7,9 +7,12 @@ export train_instances,
        train_labels,
        test_labels,
        train_and_predict!,
-       encode_labels,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
+       stub_instances,
+       stub_labels,
+       stub_predictions,
+       StubLearner,
        train!,
        predict!
 
@@ -48,7 +51,7 @@ function train_and_predict!(learner::Learner)
     return predict!(learner, test_instances)
 end
 
-type PerfectScoreLearner <: Learner
+type PerfectScoreLearner <: TestLearner
   model
   options
 
@@ -84,7 +87,7 @@ function predict!(
   return predictions
 end
 
-type AlwaysSameLabelLearner <: Learner
+type AlwaysSameLabelLearner <: TestLearner
   model
   options
 
@@ -105,6 +108,34 @@ end
 
 function predict!(awsl::AlwaysSameLabelLearner, instances::Matrix)
   return fill(awsl.model[:label], size(instances, 1))
+end
+
+
+stub_instances = [1 1;2 2;3 3; 4 4]
+stub_labels = [1;2;3;4]
+stub_predictions = [1;2;3;3]
+
+type StubLearner <: TestLearner
+  model
+  options
+
+  function StubLearner(options=Dict())
+    default_options = {
+      :metric => :accuracy
+    }
+    new(nothing, merge(default_options, options))
+  end
+end
+
+function train!(stub::StubLearner, instances::Matrix, labels::Vector)
+  stub.model = {
+    :instances => instances,
+    :labels => labels
+  }
+end
+
+function predict!(stub::StubLearner, instances::Matrix)
+  return fill(stub.model[:labels][1], size(instances, 1))
 end
 
 end # module

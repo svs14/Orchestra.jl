@@ -5,32 +5,8 @@ using Fixtures
 
 using Orchestra.AbstractLearner
 
-type StubLearner <: Learner
-  model
-  options
-
-  function StubLearner(options=Dict())
-    default_options = {
-      :metric => :accuracy
-    }
-    new(nothing, merge(default_options, options))
-  end
-end
-
-function train!(stub::StubLearner, instances::Matrix, labels::Vector)
-  stub.model = {
-    :instances => instances,
-    :labels => labels
-  }
-end
-
-function predict!(stub::StubLearner, instances::Matrix)
-  return fill(stub.model[:labels][1], size(instances, 1))
-end
-
-stub_instances = [1 1;2 2;3 3; 4 4]
-stub_labels = [1;2;3;4]
-stub_predictions = [1;2;3;3]
+include(joinpath("learners", "fixture_learners.jl"))
+using .FixtureLearners
 
 # Context setup
 @fixture function fix_rand()

@@ -1,4 +1,5 @@
 language: cpp
+
 compiler:
   - clang
 notifications:
@@ -8,14 +9,15 @@ env:
     # - JULIAVERSION="juliareleases" Require Julia 0.3 or greater.
     - JULIAVERSION="julianightlies" 
 before_install:
+  # Install Julia
   - sudo add-apt-repository ppa:staticfloat/julia-deps -y
   - sudo add-apt-repository ppa:staticfloat/${JULIAVERSION} -y
   - sudo apt-get update -qq -y
   - sudo apt-get install libpcre3-dev julia -y
+  # Install Python scikit-learn
   - sudo apt-get build-dep python-sklearn -y
   - sudo pip install -U scikit-learn
 script:
   - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Orchestra"))`); Pkg.pin("Orchestra"); Pkg.resolve()'
   - julia -e 'using Orchestra; @assert isdefined(:Orchestra); @assert typeof(Orchestra) === Module'
   - julia test/runner.jl
-  - julia test/test_system.jl

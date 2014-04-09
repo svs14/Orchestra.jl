@@ -4,6 +4,7 @@ module AbstractLearner
 using Match
 
 export Learner,
+       TestLearner,
        train!,
        predict!,
        score
@@ -12,6 +13,10 @@ export Learner,
 # All learner types must have implementations 
 # of function `train!` and `predict!`.
 abstract Learner
+
+# Test learner. 
+# Used to separate production learners from test.
+abstract TestLearner <: Learner
 
 # Trains learner on provided instances and labels.
 #

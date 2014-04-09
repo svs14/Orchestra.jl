@@ -24,9 +24,13 @@ export Learner,
        SKLLinearSVC,
        SKLNuSVC,
        SKLDecisionTree,
+       CRTWrapper,
        train!,
        predict!,
        score
+
+# Obtain system details
+import Orchestra.System: HAS_SKL, HAS_CRT
 
 # Include abstract learner as convenience
 importall Orchestra.AbstractLearner
@@ -36,8 +40,16 @@ include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
 
 # Include atomic Python learners
-include(joinpath("python", "scikit_learn.jl"))
-importall .ScikitLearnWrapper
+if HAS_SKL
+  include(joinpath("python", "scikit_learn.jl"))
+  importall .ScikitLearnWrapper
+end
+
+# Include atomic R learners
+if HAS_CRT
+  include(joinpath("r", "caret.jl"))
+  importall .CaretWrapper
+end
 
 # Include aggregate learners last, dependent on atomic learners
 include(joinpath("orchestra", "ensemble.jl"))
