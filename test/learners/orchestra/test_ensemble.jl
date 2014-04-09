@@ -1,7 +1,7 @@
 module TestEnsembleMethods
 
 include(joinpath("..", "fixture_learners.jl"))
-importall .FixtureLearners
+using .FixtureLearners
 
 using FactCheck
 using Fixtures
