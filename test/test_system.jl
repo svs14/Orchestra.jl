@@ -1,11 +1,14 @@
 # System tests.
-# 
-# NOTE(svs14): This must be run outside of runner.jl
-#              to avoid loading test learners.
 module TestSystem
 
+using Orchestra.AbstractLearner
+using Orchestra.System
 using Orchestra.Learners
 using Orchestra.Util
+
+include(joinpath("learners", "fixture_learners.jl"))
+import .FixtureLearners
+FL = FixtureLearners
 
 function all_concrete_subtypes(a_type::Type)
   a_subtypes = Type[]
@@ -18,13 +21,11 @@ function all_concrete_subtypes(a_type::Type)
   end
   return a_subtypes
 end
-# NOTE(svs14): This must be called before FixtureLearners is loaded.
-#              Otherwise test learners will be included.
-concrete_learner_types = all_concrete_subtypes(Learner)
 
-include(joinpath("learners", "fixture_learners.jl"))
-import .FixtureLearners
-FL = FixtureLearners
+concrete_learner_types = setdiff(
+  all_concrete_subtypes(Learner),
+  all_concrete_subtypes(TestLearner)
+)
 
 using FactCheck
 using Fixtures
@@ -62,12 +63,15 @@ facts("Orchestra system", using_fixtures) do
   end
 
   context("Ensemble with learners from different libraries work.", using_fixtures) do 
-    learners = [
-      RandomForest(), 
-      StackEnsemble(),
-      SKLSVC(),
-      CRTWrapper()
-    ]
+    learners = Learner[]
+    push!(learners, RandomForest())
+    push!(learners, StackEnsemble())
+    if HAS_SKL
+      push!(learners, SKLSVC())
+    end
+    if HAS_CRT
+      push!(learners, CRTWrapper())
+    end
     ensemble = VoteEnsemble({:learners => learners})
     predictions = FL.train_and_predict!(ensemble)
 
