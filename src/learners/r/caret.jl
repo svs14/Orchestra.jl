@@ -19,7 +19,7 @@ export CRTWrapper,
 vector_to_r{T<:Int}(vector::Vector{T}) = RO.IntVector(vector)
 vector_to_r{T<:Real}(vector::Vector{T}) = RO.FloatVector(vector)
 vector_to_r{T<:Bool}(vector::Vector{T}) = RO.BoolVector(vector)
-vector_to_r{T<:String}(vector::Vector{T}) = RO.StringVector(vector)
+vector_to_r{T<:String}(vector::Vector{T}) = RO.StrVector(vector)
 function vector_to_r(vector::Vector{Any})
   # Return most general type available if empty
   if isempty(vector) 
