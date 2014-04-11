@@ -2,6 +2,7 @@ module TestScikitLearnWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
@@ -17,21 +18,21 @@ using PyCall
 @pyimport sklearn.tree as TREE
 
 
-function skl_train_and_predict!(learner::Learner)
-  RAN.seed(1)
-  return train_and_predict!(learner)
+function skl_train_and_predict!(learner::Learner, problem::MLProblem, seed=1)
+  RAN.seed(seed)
+  return train_and_predict!(learner, problem, seed)
 end
 
-function backend_train_and_predict!(sk_learner)
-  RAN.seed(1)
-  srand(1)
-  sk_learner[:fit](train_instances, train_labels)
-  return collect(sk_learner[:predict](test_instances))
+function backend_train_and_predict!(sk_learner, seed=1)
+  RAN.seed(seed)
+  srand(seed)
+  sk_learner[:fit](nfcp.train_instances, nfcp.train_labels)
+  return collect(sk_learner[:predict](nfcp.test_instances))
 end
 
 function behavior_check(learner::Learner, sk_learner)
   # Predict with Orchestra learner
-  orchestra_predictions = skl_train_and_predict!(learner)
+  orchestra_predictions = skl_train_and_predict!(learner, nfcp)
 
   # Predict with original backend learner
   original_predictions = backend_train_and_predict!(sk_learner)
@@ -98,7 +99,7 @@ facts("scikit-learn learners", using_fixtures) do
 
   context("SKLRadiusNeighbors gives same results as its backend", using_fixtures) do
     learner = SKLRadiusNeighbors()
-    outlier_label = train_labels[rand(1:size(train_labels, 1))]
+    outlier_label = nfcp.train_labels[rand(1:size(nfcp.train_labels, 1))]
     sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
     behavior_check(learner, sk_learner)
   end

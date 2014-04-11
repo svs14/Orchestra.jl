@@ -2,6 +2,7 @@ module TestEnsembleMethods
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
@@ -19,9 +20,9 @@ facts("Ensemble learners", using_fixtures) do
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, train_instances, train_labels)
-    predictions = predict!(learner, test_instances)
-    expected_predictions = fill("a", size(test_instances, 1))
+    train!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = predict!(learner, nfcp.test_instances)
+    expected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => expected_predictions
   end
@@ -38,9 +39,9 @@ facts("Ensemble learners", using_fixtures) do
         PerfectScoreLearner()
       ]
     })
-    train!(learner, train_instances, train_labels)
-    predictions = predict!(learner, test_instances)
-    unexpected_predictions = fill("a", size(test_instances, 1))
+    train!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = predict!(learner, nfcp.test_instances)
+    unexpected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => not(unexpected_predictions)
   end

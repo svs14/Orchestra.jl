@@ -2,6 +2,7 @@ module TestCaretWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
@@ -25,13 +26,13 @@ function behavior_check(caret_learner::String, impl_options=Dict())
     :learner => caret_learner, 
     :impl_options => impl_options
   })
-  orchestra_predictions = train_and_predict!(learner)
+  orchestra_predictions = train_and_predict!(learner, nfcp)
 
   # Predict with backend learner
   srand(1)
   pycall(RO.r["set.seed"], PyObject, 1)
   (r_dataset_df, label_factors) = CW.dataset_to_r_dataframe(
-    train_instances, train_labels
+    nfcp.train_instances, nfcp.train_labels
   )
   label_factors = collect(label_factors)
   caret_formula = RO.Formula("Y ~ .")
@@ -55,7 +56,7 @@ function behavior_check(caret_learner::String, impl_options=Dict())
       tuneGrid = RO.DataFrame(impl_options)
     )
   end
-  (r_instance_df, _) = CW.dataset_to_r_dataframe(test_instances)
+  (r_instance_df, _) = CW.dataset_to_r_dataframe(nfcp.test_instances)
   original_predictions = collect(pycall(RO.r[:predict], PyObject,
     r_model,
     newdata = r_instance_df

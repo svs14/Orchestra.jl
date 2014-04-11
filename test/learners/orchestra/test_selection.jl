@@ -2,6 +2,7 @@ module TestSelectionMethods
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
@@ -19,7 +20,7 @@ facts("Selection learners", using_fixtures) do
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, train_instances, train_labels)
+    train!(learner, nfcp.train_instances, nfcp.train_labels)
 
     @fact learner.model[:best_learner_index] => 2
   end

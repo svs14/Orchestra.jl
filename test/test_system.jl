@@ -7,8 +7,8 @@ using Orchestra.Learners
 using Orchestra.Util
 
 include(joinpath("learners", "fixture_learners.jl"))
-import .FixtureLearners
-FL = FixtureLearners
+using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 function all_concrete_subtypes(a_type::Type)
   a_subtypes = Type[]
@@ -35,7 +35,7 @@ facts("Orchestra system", using_fixtures) do
 
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      FL.train_and_predict!(learner)
+      train_and_predict!(learner, nfcp)
     end
 
     @fact 1 => 1
@@ -73,7 +73,7 @@ facts("Orchestra system", using_fixtures) do
       push!(learners, CRTWrapper())
     end
     ensemble = VoteEnsemble({:learners => learners})
-    predictions = FL.train_and_predict!(ensemble)
+    predictions = train_and_predict!(ensemble, nfcp)
 
     @fact 1 => 1
   end

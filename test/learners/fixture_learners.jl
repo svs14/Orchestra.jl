@@ -2,53 +2,70 @@ module FixtureLearners
 
 importall Orchestra.AbstractLearner
 
-export train_instances, 
-       test_instances,
-       train_labels,
-       test_labels,
-       train_and_predict!,
+export MLProblem,
+       Classification,
+       NumericFeatureClassification,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
-       stub_instances,
-       stub_labels,
-       stub_predictions,
-       StubLearner,
+       train_and_predict!,
        train!,
        predict!
+       
+abstract MLProblem
+abstract Classification <: MLProblem
 
-train_dataset = [
-  1 2 "a";
-  2 3 "a";
-  3 4 "a";
-  -1 -2 "b";
-  -2 -3 "b";
-  -3 -4 "b";
-  1 1 "c";
-  2 2 "c";
-  3 3 "c";
-  0 1 "d";
-  0 2 "d";
-  0 3 "d";
-]
-test_dataset = [
-  4 5 "a";
-  5 6 "a";
-  -4 -5 "b";
-  -5 -6 "b";
-  4 4 "c";
-  5 5 "c";
-  0 4 "d";
-  0 5 "d";
-]
-train_instances = convert(Array{Real, 2}, train_dataset[:, 1:end-1])
-test_instances = convert(Array{Real, 2}, test_dataset[:, 1:end-1])
-train_labels = convert(Array{String, 1}, train_dataset[:, end])
-test_labels = convert(Array{String, 1}, test_dataset[:, end])
+type NumericFeatureClassification <: Classification
+  train_instances::Matrix
+  test_instances::Matrix
+  train_labels::Vector
+  test_labels::Vector
 
-function train_and_predict!(learner::Learner)
-    srand(1)
-    train!(learner, train_instances, train_labels)
-    return predict!(learner, test_instances)
+  function NumericFeatureClassification()
+    # NOTE(svs14): Currently hardcoded example. 
+    #              Consider turning into rule-based generator.
+    train_dataset = [
+      1 2 "a";
+      2 3 "a";
+      3 4 "a";
+      -1 -2 "b";
+      -2 -3 "b";
+      -3 -4 "b";
+      1 1 "c";
+      2 2 "c";
+      3 3 "c";
+      0 1 "d";
+      0 2 "d";
+      0 3 "d";
+    ]
+    test_dataset = [
+      4 5 "a";
+      5 6 "a";
+      -4 -5 "b";
+      -5 -6 "b";
+      4 4 "c";
+      5 5 "c";
+      0 4 "d";
+      0 5 "d";
+    ]
+
+    train_instances = convert(Array{Real, 2}, train_dataset[:, 1:end-1])
+    test_instances = convert(Array{Real, 2}, test_dataset[:, 1:end-1])
+    train_labels = convert(Array{String, 1}, train_dataset[:, end])
+    test_labels = convert(Array{String, 1}, test_dataset[:, end])
+    new(
+      train_instances,
+      test_instances,
+      train_labels,
+      test_labels
+    ) 
+  end
+end
+
+
+function train_and_predict!(learner::Learner, problem::MLProblem, seed=1)
+    srand(seed)
+    train!(learner, problem.train_instances, problem.train_labels)
+    return predict!(learner, problem.test_instances)
 end
 
 type PerfectScoreLearner <: TestLearner
@@ -57,7 +74,8 @@ type PerfectScoreLearner <: TestLearner
 
   function PerfectScoreLearner(options=Dict())
     default_options = {
-      :metric => :accuracy
+      :metric => :accuracy,
+      :problem => NumericFeatureClassification()
     }
     new(nothing, merge(default_options, options))
   end
@@ -66,7 +84,12 @@ end
 function train!(
   psl::PerfectScoreLearner, instances::Matrix, labels::Vector)
 
-  dataset = [train_dataset; test_dataset]
+  problem = psl.options[:problem]
+
+  dataset = [
+    problem.train_instances problem.train_labels; 
+    problem.test_instances problem.test_labels
+  ]
   instance_label_map = [
     dataset[i,1:2] => dataset[i,3] for i=1:size(dataset, 1)
   ]
@@ -94,48 +117,26 @@ type AlwaysSameLabelLearner <: TestLearner
   function AlwaysSameLabelLearner(options=Dict())
     default_options = {
       :metric => :accuracy,
-      :label => "a"
+      :label => nothing
     }
     new(nothing, merge(default_options, options))
   end
 end
 
 function train!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
-  awsl.model = {
-    :label => awsl.options[:label]
-  }
+  if awsl.options[:label] == nothing
+    awsl.model = {
+      :label => first(labels)
+    }
+  else
+    awsl.model = {
+      :label => awsl.options[:label]
+    }
+  end
 end
 
 function predict!(awsl::AlwaysSameLabelLearner, instances::Matrix)
   return fill(awsl.model[:label], size(instances, 1))
-end
-
-
-stub_instances = [1 1;2 2;3 3; 4 4]
-stub_labels = [1;2;3;4]
-stub_predictions = [1;2;3;3]
-
-type StubLearner <: TestLearner
-  model
-  options
-
-  function StubLearner(options=Dict())
-    default_options = {
-      :metric => :accuracy
-    }
-    new(nothing, merge(default_options, options))
-  end
-end
-
-function train!(stub::StubLearner, instances::Matrix, labels::Vector)
-  stub.model = {
-    :instances => instances,
-    :labels => labels
-  }
-end
-
-function predict!(stub::StubLearner, instances::Matrix)
-  return fill(stub.model[:labels][1], size(instances, 1))
 end
 
 end # module
