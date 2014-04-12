@@ -10,13 +10,8 @@ using Fixtures
 importall Orchestra.AbstractLearner
 importall Orchestra.Learners.ScikitLearnWrapper
 using PyCall
-@pyimport sklearn.ensemble as ENS
-@pyimport sklearn.linear_model as LM
-@pyimport random as RAN
 @pyimport sklearn.neighbors as NN
-@pyimport sklearn.svm as SVM
-@pyimport sklearn.tree as TREE
-
+@pyimport random as RAN
 
 function skl_train_and_predict!(learner::Learner, problem::MLProblem, seed=1)
   RAN.seed(seed)
@@ -43,95 +38,29 @@ end
 
 
 facts("scikit-learn learners", using_fixtures) do
-  context("SKLRandomForest gives same results as its backend", using_fixtures) do
-    learner = SKLRandomForest({:impl_options => {:random_state => 1}})
-    sk_learner = ENS.RandomForestClassifier(random_state = 1)
-    behavior_check(learner, sk_learner)
-  end
+  context("SKLWrapper gives same results as its backend", using_fixtures) do
+    learner_names = collect(keys(ScikitLearnWrapper.learner_dict))
+    for learner_name in learner_names
+      sk_learner = ScikitLearnWrapper.learner_dict[learner_name]()
+      impl_options = Dict()
 
-  context("SKLExtraTrees gives same results as its backend", using_fixtures) do
-    learner = SKLExtraTrees({:impl_options => {:random_state => 1}})
-    sk_learner = ENS.ExtraTreesClassifier(random_state = 1)
-    behavior_check(learner, sk_learner)
-  end
+      if in(learner_name, ["RandomForestClassifier", "ExtraTreesClassifier"])
+        impl_options = {:random_state => 1}
+        sk_learner = ScikitLearnWrapper.learner_dict[learner_name](
+          random_state = 1
+        )
+      elseif learner_name == "RadiusNeighborsClassifier"
+        outlier_label = nfcp.train_labels[rand(1:size(nfcp.train_labels, 1))]
+        impl_options = {:outlier_label => outlier_label}
+        sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
+      end
 
-  context("SKLGradientBoosting gives same results as its backend", using_fixtures) do
-    learner = SKLGradientBoosting()
-    sk_learner = ENS.GradientBoostingClassifier()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLLogisticRegression gives same results as its backend", using_fixtures) do
-    learner = SKLLogisticRegression()
-    sk_learner = LM.LogisticRegression()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLPassiveAggressive gives same results as its backend", using_fixtures) do
-    learner = SKLPassiveAggressive()
-    sk_learner = LM.PassiveAggressiveClassifier()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLRidge gives same results as its backend", using_fixtures) do
-    learner = SKLRidge()
-    sk_learner = LM.RidgeClassifier()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLRidgeCV gives same results as its backend", using_fixtures) do
-    learner = SKLRidgeCV()
-    sk_learner = LM.RidgeClassifierCV()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLSGD gives same results as its backend", using_fixtures) do
-    learner = SKLSGD()
-    sk_learner = LM.SGDClassifier()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLKNeighbors gives same results as its backend", using_fixtures) do
-    learner = SKLKNeighbors()
-    sk_learner = NN.KNeighborsClassifier()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLRadiusNeighbors gives same results as its backend", using_fixtures) do
-    learner = SKLRadiusNeighbors()
-    outlier_label = nfcp.train_labels[rand(1:size(nfcp.train_labels, 1))]
-    sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLNearestCentroid gives same results as its backend", using_fixtures) do
-    learner = SKLNearestCentroid()
-    sk_learner = NN.NearestCentroid()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLSVC gives same results as its backend", using_fixtures) do
-    learner = SKLSVC()
-    sk_learner = SVM.SVC()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLLinearSVC gives same results as its backend", using_fixtures) do
-    learner = SKLLinearSVC()
-    sk_learner = SVM.LinearSVC()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLNuSVC gives same results as its backend", using_fixtures) do
-    learner = SKLNuSVC()
-    sk_learner = SVM.NuSVC()
-    behavior_check(learner, sk_learner)
-  end
-
-  context("SKLDecisionTree gives same results as its backend", using_fixtures) do
-    learner = SKLDecisionTree()
-    sk_learner = TREE.DecisionTreeClassifier()
-    behavior_check(learner, sk_learner)
+      learner = SKLWrapper({
+        :learner => learner_name,
+        :impl_options => impl_options
+      })
+      behavior_check(learner, sk_learner)
+    end
   end
 end
 
