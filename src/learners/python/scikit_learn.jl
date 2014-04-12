@@ -13,6 +13,7 @@ export SKLWrapper,
        train!,
        predict!
 
+# Available scikit-learn learners.
 learner_dict = {
   "RandomForestClassifier" => ENS.RandomForestClassifier,
   "ExtraTreesClassifier" => ENS.ExtraTreesClassifier,
