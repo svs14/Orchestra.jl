@@ -108,23 +108,22 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ### Python
 
+Most classifiers are available from scikit-learn.
+
+Orchestra accessible learners are listed [here](src/learners/python/scikit_learn.jl).
+See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
+
+```julia
+# Example usage for using scikit-learn.
+learner = SKLWrapper({
+  :learner => "RandomForestClassifier", 
+  :impl_options => {:max_depth => 3}
+})
+```
+
 | Learner               | Library           | Metrics  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
-| SKLRandomForest       | scikit-learn 0.14 | accuracy | Random Forest.                                   |
-| SKLExtraTrees         | scikit-learn 0.14 | accuracy | Extra-trees.                                     |
-| SKLGradientBoosting   | scikit-learn 0.14 | accuracy | Gradient Boosting Machine.                       |
-| SKLLogisticRegression | scikit-learn 0.14 | accuracy | Logistic Regression.                             |
-| SKLPassiveAggressive  | scikit-learn 0.14 | accuracy | Passive Aggressive.                              |
-| SKLRidge              | scikit-learn 0.14 | accuracy | Ridge classifier.                                |
-| SKLRidgeCV            | scikit-learn 0.14 | accuracy | Ridge classifier with in-built Cross Validation. |
-| SKLSGD                | scikit-learn 0.14 | accuracy | Linear classifiers with SGD training.            |
-| SKLKNeighbors         | scikit-learn 0.14 | accuracy | K Nearest Neighbors                              |
-| SKLRadiusNeighbors    | scikit-learn 0.14 | accuracy | Within Radius Neighbors Vote.                    |
-| SKLNearestCentroid    | scikit-learn 0.14 | accuracy | Nearest Centroid.                                |
-| SKLSVC                | scikit-learn 0.14 | accuracy | C-Support Vector Classifier.                     |
-| SKLLinearSVC          | scikit-learn 0.14 | accuracy | Linear Support Vector Classifier.                |
-| SKLNuSVC              | scikit-learn 0.14 | accuracy | Nu-Support Vector Classifier.                    |
-| SKLDecisionTree       | scikit-learn 0.14 | accuracy | Decision Tree.                                   |
+| SKLWrapper            | scikit-learn 0.14 | accuracy | Wrapper to most scikit-learn machine learners.   |
 
 
 ### R

@@ -67,7 +67,7 @@ facts("Orchestra system", using_fixtures) do
     push!(learners, RandomForest())
     push!(learners, StackEnsemble())
     if HAS_SKL
-      push!(learners, SKLSVC())
+      push!(learners, SKLWrapper())
     end
     if HAS_CRT
       push!(learners, CRTWrapper())
