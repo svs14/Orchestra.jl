@@ -5,7 +5,7 @@ using Fixtures
 
 using Orchestra.AbstractLearner
 
-include(joinpath("learners", "fixture_learners.jl"))
+include("fixture_learners.jl")
 using .FixtureLearners
 nfcp = NumericFeatureClassification()
 
