@@ -31,7 +31,7 @@ test_labels = labels[test_ind]
 learner = PrunedTree()
 train!(learner, train_instances, train_labels)
 predictions = predict!(learner, test_instances)
-result = score(learner, test_instances, test_labels, predictions)
+result = score(:accuracy, test_labels, predictions)
 ```
 
 ### Try another Learner
@@ -90,7 +90,7 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ### Julia
 
-| Learner               | Library           | Metrics  | Description                                      |
+| Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | PrunedTree            | DecisionTree.jl   | accuracy | C4.5 Decision Tree.                              |
 | RandomForest          | DecisionTree.jl   | accuracy | C4.5 Random Forest.                              |
@@ -99,7 +99,7 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 ### Orchestra
 
-| Learner               | Library           | Metrics  | Description                                      |
+| Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | VoteEnsemble          | Orchestra.jl      | accuracy | Majority Vote Ensemble.                          |
 | StackEnsemble         | Orchestra.jl      | accuracy | Stack Ensemble.                                  |
@@ -121,7 +121,7 @@ learner = SKLWrapper({
 })
 ```
 
-| Learner               | Library           | Metrics  | Description                                      |
+| Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | SKLWrapper            | scikit-learn 0.14 | accuracy | Wrapper to most scikit-learn machine learners.   |
 
@@ -141,7 +141,7 @@ learner = CRTWrapper({
 })
 ```
 
-| Learner               | Library           | Metrics  | Description                                      |
+| Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | CRTWrapper            | caret 6.0         | accuracy | Wrapper to all CARET machine learners.           |
 
