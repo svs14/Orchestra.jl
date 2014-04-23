@@ -2,7 +2,7 @@
 module EnsembleMethods
 
 importall Orchestra.AbstractLearner
-import Orchestra.Util: holdout, kfold
+import Orchestra.Util: holdout, kfold, score
 import Stats
 import MLBase
 
@@ -21,9 +21,9 @@ export VoteEnsemble,
 #
 # <pre>
 # default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Learners in voting committee.
 #   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 # }
@@ -34,9 +34,9 @@ type VoteEnsemble <: Learner
   
   function VoteEnsemble(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Learners in voting committee.
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
     }
@@ -65,9 +65,9 @@ end
 #
 # <pre>
 # default_options = {    
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Set of learners that produce feature space for stacker.
 #   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
 #   # Machine learner that trains on set of learners' outputs.
@@ -84,9 +84,9 @@ type StackEnsemble <: Learner
   
   function StackEnsemble(options=Dict())
     default_options = {    
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Set of learners that produce feature space for stacker.
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
       # Machine learner that trains on set of learners' outputs.
@@ -190,15 +190,15 @@ end
 # 
 # <pre>
 # default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Function to return partitions of instance indices.
 #   :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
 #   # Function that selects the best learner by index.
 #   # Arg learner_partition_scores is a (learner, partition) score matrix.
 #   :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
-#   # Score type returned by score() using respective metric.
+#   # Score type returned by score() using respective output.
 #   :score_type => Real
 #   # Candidate learners.
 #   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
@@ -210,15 +210,15 @@ type BestLearnerEnsemble <: Learner
   
   function BestLearnerEnsemble(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Function to return partitions of instance indices.
       :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
       # Function that selects the best learner by index.
       # Arg learner_partition_scores is a (learner, partition) score matrix.
       :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
-      # Score type returned by score() using respective metric.
+      # Score type returned by score() using respective output.
       :score_type => Real,
       # Candidate learners.
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
@@ -232,7 +232,7 @@ function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
   partition_generator = bls.options[:partition_generator]
   partitions = partition_generator(instances, labels)
   
-  # Train each learner on each partition and obtain validation metric
+  # Train each learner on each partition and obtain validation output
   learners = bls.options[:learners]
   num_partitions = size(partitions, 1)
   num_learners = size(learners, 1)
@@ -251,9 +251,7 @@ function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
 
     train!(learner, training_instances, training_labels)
     predictions = predict!(learner, validation_instances)
-    result = score(
-      learner, validation_instances, validation_labels, predictions
-    )
+    result = score(:accuracy, validation_labels, predictions)
     learner_partition_scores[l_index, p_index] = result
   end
   

@@ -11,8 +11,7 @@ export Learner,
        SKLWrapper,
        CRTWrapper,
        train!,
-       predict!,
-       score
+       predict!
 
 # Obtain system details
 import Orchestra.System: HAS_SKL, HAS_CRT

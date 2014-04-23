@@ -3,7 +3,6 @@ module TestRunner
   using FactCheck
   using Orchestra.System
 
-  include("test_abstractlearner.jl")
   include("test_util.jl")
   include(joinpath("julia", "test_decisiontree.jl"))
   include(joinpath("orchestra", "test_ensemble.jl"))

@@ -5,6 +5,10 @@ using Fixtures
 
 using Orchestra.Util
 
+include("fixture_learners.jl")
+using .FixtureLearners
+nfcp = NumericFeatureClassification()
+
 facts("Orchestra util functions", using_fixtures) do
   context("holdout returns proportional partitions", using_fixtures) do
     n = 10
@@ -25,6 +29,22 @@ facts("Orchestra util functions", using_fixtures) do
     # Check pairwise intersection of partitions
     @fact size([partitions...], 1) => size(unique([partitions...]), 1)
     @fact size(union(partitions...), 1) => num_instances
+  end
+  context("score calculates accuracy", using_fixtures) do
+    learner = PerfectScoreLearner({:problem => nfcp})
+    predictions = train_and_predict!(learner, nfcp)
+
+    @fact score(
+      :accuracy, nfcp.test_labels, predictions
+    ) => 100.0
+  end
+  context("score throws exception on unknown metric", using_fixtures) do
+    learner = PerfectScoreLearner({:problem => nfcp})
+    predictions = train_and_predict!(learner, nfcp)
+
+    @fact_throws score(
+      :fake, nfcp.test_labels, predictions
+    )
   end
 end
 

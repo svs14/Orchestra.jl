@@ -74,7 +74,7 @@ type PerfectScoreLearner <: TestLearner
 
   function PerfectScoreLearner(options=Dict())
     default_options = {
-      :metric => :accuracy,
+      :output => :class,
       :problem => NumericFeatureClassification()
     }
     new(nothing, merge(default_options, options))
@@ -116,7 +116,7 @@ type AlwaysSameLabelLearner <: TestLearner
 
   function AlwaysSameLabelLearner(options=Dict())
     default_options = {
-      :metric => :accuracy,
+      :output => :class,
       :label => nothing
     }
     new(nothing, merge(default_options, options))

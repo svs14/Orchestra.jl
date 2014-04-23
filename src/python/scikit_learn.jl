@@ -60,9 +60,9 @@ type SKLWrapper <: Learner
   
   function SKLWrapper(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       :learner => "LinearSVC",
       # Options specific to this implementation.
       :impl_options => Dict(),

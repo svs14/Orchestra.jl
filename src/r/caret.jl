@@ -70,9 +70,9 @@ type CRTWrapper <: Learner
   
   function CRTWrapper(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       :learner => "svmLinear",
       :impl_options => {}
     }

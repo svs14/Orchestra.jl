@@ -15,9 +15,9 @@ export PrunedTree,
 # 
 # <pre>
 # default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Options specific to this implementation.
 #   :impl_options => {
 #     # Merge leaves having >= purity_threshold combined purity.
@@ -31,9 +31,9 @@ type PrunedTree <: Learner
   
   function PrunedTree(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Merge leaves having >= purity_threshold combined purity.
@@ -57,9 +57,9 @@ end
 #
 # <pre>
 # default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Options specific to this implementation.
 #   :impl_options => {
 #     # Number of features to train on with trees.
@@ -77,9 +77,9 @@ type RandomForest <: Learner
   
   function RandomForest(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Number of features to train on with trees.
@@ -120,9 +120,9 @@ end
 # 
 # <pre>
 # default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
+#   # Output to train against
+#   # (:class).
+#   :output => :class,
 #   # Options specific to this implementation.
 #   :impl_options => {
 #     # Number of boosting iterations.
@@ -136,9 +136,9 @@ type DecisionStumpAdaboost <: Learner
   
   function DecisionStumpAdaboost(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Number of boosting iterations.

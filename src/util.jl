@@ -2,9 +2,11 @@
 module Util
 
 import MLBase: Kfold
+using Match
 
 export holdout,
-       kfold
+       kfold,
+       score
 
 # Holdout method that partitions a collection
 # into two partitions.
@@ -28,6 +30,22 @@ end
 #     partition of indices as elements.
 function kfold(num_instances, num_partitions)
   return collect(Kfold(num_instances, num_partitions))
+end
+
+# Score learner predictions against ground truth values.
+#
+# Available metrics:
+# - :accuracy
+#
+# @param metric Metric to assess with.
+# @param actual Ground truth values.
+# @param predicted Predicted values.
+# @return Score of learner.
+function score(metric::Symbol, actual, predicted)
+  return @match metric begin
+    :accuracy => mean(actual .== predicted) * 100.0
+    _ => error("Metric $metric not implemented for score.")
+  end
 end
 
 end # module
