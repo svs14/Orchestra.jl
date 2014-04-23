@@ -39,7 +39,5 @@ end
 # Include aggregate learners last, dependent on atomic learners
 include(joinpath("orchestra", "ensemble.jl"))
 importall .EnsembleMethods
-include(joinpath("orchestra", "selection.jl"))
-importall .SelectionMethods
 
 end # module

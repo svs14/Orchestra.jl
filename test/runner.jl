@@ -7,7 +7,6 @@ module TestRunner
   include("test_util.jl")
   include(joinpath("learners", "julia", "test_decisiontree.jl"))
   include(joinpath("learners", "orchestra", "test_ensemble.jl"))
-  include(joinpath("learners", "orchestra", "test_selection.jl"))
   if HAS_SKL
     include(joinpath("learners", "python", "test_scikit_learn.jl"))
   else

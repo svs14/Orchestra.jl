@@ -2,7 +2,7 @@
 module EnsembleMethods
 
 importall Orchestra.AbstractLearner
-import Orchestra.Util: holdout
+import Orchestra.Util: holdout, kfold
 import Stats
 import MLBase
 
@@ -13,6 +13,7 @@ import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
 
 export VoteEnsemble, 
        StackEnsemble,
+       BestLearnerSelection, 
        train!, 
        predict!
 
@@ -183,6 +184,98 @@ function build_stacker_instances{T<:Learner}(
   
   # Return stacker instances
   return stacker_instances
+end
+
+# Selects best learner out of set.
+# 
+# <pre>
+# default_options = {
+#   # Metric to train against
+#   # (:accuracy).
+#   :metric => :accuracy,
+#   # Function to return partitions of instance indices.
+#   :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
+#   # Function that selects the best learner by index.
+#   # Arg learner_partition_scores is a (learner, partition) score matrix.
+#   :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
+#   # Score type returned by score() using respective metric.
+#   :score_type => Real
+#   # Candidate learners.
+#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+# }
+# </pre>
+type BestLearnerSelection <: Learner
+  model
+  options
+  
+  function BestLearnerSelection(options=Dict())
+    default_options = {
+      # Metric to train against
+      # (:accuracy).
+      :metric => :accuracy,
+      # Function to return partitions of instance indices.
+      :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
+      # Function that selects the best learner by index.
+      # Arg learner_partition_scores is a (learner, partition) score matrix.
+      :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
+      # Score type returned by score() using respective metric.
+      :score_type => Real,
+      # Candidate learners.
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+    }
+    new(nothing, merge(default_options, options)) 
+  end
+end
+
+function train!(bls::BestLearnerSelection, instances::Matrix, labels::Vector)
+  # Generate partitions
+  partition_generator = bls.options[:partition_generator]
+  partitions = partition_generator(instances, labels)
+  
+  # Train each learner on each partition and obtain validation metric
+  learners = bls.options[:learners]
+  num_partitions = size(partitions, 1)
+  num_learners = size(learners, 1)
+  num_instances = size(instances, 1)
+  score_type = bls.options[:score_type]
+  learner_partition_scores = Array(score_type, num_learners, num_partitions)
+  for l_index = 1:num_learners, p_index = 1:num_partitions
+    partition = partitions[p_index]
+    rest = setdiff(1:num_instances, partition)
+    learner = learners[l_index]
+
+    training_instances = instances[partition,:]
+    training_labels = labels[partition]
+    validation_instances = instances[rest, :]
+    validation_labels = labels[rest]
+
+    train!(learner, training_instances, training_labels)
+    predictions = predict!(learner, validation_instances)
+    result = score(
+      learner, validation_instances, validation_labels, predictions
+    )
+    learner_partition_scores[l_index, p_index] = result
+  end
+  
+  # Find best learner based on selection function
+  best_learner_index = 
+    bls.options[:selection_function](learner_partition_scores)
+  best_learner = learners[best_learner_index]
+  
+  # Retrain best learner on all training instances
+  train!(best_learner, instances, labels)
+  
+  # Create model
+  bls.model = {
+    :best_learner => best_learner,
+    :best_learner_index => best_learner_index,
+    :learners => learners,
+    :learner_partition_scores => learner_partition_scores
+  }
+end
+
+function predict!(bls::BestLearnerSelection, instances::Matrix)
+  predict!(bls.model[:best_learner], instances)
 end
 
 end # module
