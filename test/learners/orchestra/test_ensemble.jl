@@ -46,10 +46,10 @@ facts("Ensemble learners", using_fixtures) do
     @fact predictions => not(unexpected_predictions)
   end
 
-  context("BestLearnerSelection picks the best learner", using_fixtures) do
+  context("BestLearnerEnsemble picks the best learner", using_fixtures) do
     always_a_options = { :label => "a" }
     always_b_options = { :label => "b" }
-    learner = BestLearnerSelection({
+    learner = BestLearnerEnsemble({
       :learners => [
         AlwaysSameLabelLearner(always_a_options),
         PerfectScoreLearner(),

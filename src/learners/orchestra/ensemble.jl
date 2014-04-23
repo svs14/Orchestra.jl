@@ -13,7 +13,7 @@ import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
 
 export VoteEnsemble, 
        StackEnsemble,
-       BestLearnerSelection, 
+       BestLearnerEnsemble, 
        train!, 
        predict!
 
@@ -204,11 +204,11 @@ end
 #   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 # }
 # </pre>
-type BestLearnerSelection <: Learner
+type BestLearnerEnsemble <: Learner
   model
   options
   
-  function BestLearnerSelection(options=Dict())
+  function BestLearnerEnsemble(options=Dict())
     default_options = {
       # Metric to train against
       # (:accuracy).
@@ -227,7 +227,7 @@ type BestLearnerSelection <: Learner
   end
 end
 
-function train!(bls::BestLearnerSelection, instances::Matrix, labels::Vector)
+function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
   # Generate partitions
   partition_generator = bls.options[:partition_generator]
   partitions = partition_generator(instances, labels)
@@ -274,7 +274,7 @@ function train!(bls::BestLearnerSelection, instances::Matrix, labels::Vector)
   }
 end
 
-function predict!(bls::BestLearnerSelection, instances::Matrix)
+function predict!(bls::BestLearnerEnsemble, instances::Matrix)
   predict!(bls.model[:best_learner], instances)
 end
 
