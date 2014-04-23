@@ -38,7 +38,7 @@ end
 
 
 facts("scikit-learn learners", using_fixtures) do
-  context("SKLWrapper gives same results as its backend", using_fixtures) do
+  context("SKLLearner gives same results as its backend", using_fixtures) do
     learner_names = collect(keys(ScikitLearnWrapper.learner_dict))
     for learner_name in learner_names
       sk_learner = ScikitLearnWrapper.learner_dict[learner_name]()
@@ -55,7 +55,7 @@ facts("scikit-learn learners", using_fixtures) do
         sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
       end
 
-      learner = SKLWrapper({
+      learner = SKLLearner({
         :learner => learner_name,
         :impl_options => impl_options
       })

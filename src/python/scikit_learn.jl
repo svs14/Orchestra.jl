@@ -9,7 +9,7 @@ using PyCall
 @pyimport sklearn.svm as SVM
 @pyimport sklearn.tree as TREE
 
-export SKLWrapper,
+export SKLLearner,
        train!,
        predict!
 
@@ -54,11 +54,11 @@ learner_dict = {
 #   - "NuSVC"
 #   - "DecisionTreeClassifier"
 #
-type SKLWrapper <: Learner
+type SKLLearner <: Learner
   model
   options
   
-  function SKLWrapper(options=Dict())
+  function SKLLearner(options=Dict())
     default_options = {
       # Output to train against
       # (:class).
@@ -71,7 +71,7 @@ type SKLWrapper <: Learner
   end
 end
 
-function train!(sklw::SKLWrapper, instances::Matrix, labels::Vector)
+function train!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   impl_options = copy(sklw.options[:impl_options])
   learner = sklw.options[:learner]
   py_learner = learner_dict[learner]
@@ -88,7 +88,7 @@ function train!(sklw::SKLWrapper, instances::Matrix, labels::Vector)
   sklw.model[:fit](instances, labels)
 end
 
-function predict!(sklw::SKLWrapper, instances::Matrix)
+function predict!(sklw::SKLLearner, instances::Matrix)
   return collect(sklw.model[:predict](instances))
 end
 

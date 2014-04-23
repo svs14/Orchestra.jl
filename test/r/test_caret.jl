@@ -22,7 +22,7 @@ function behavior_check(caret_learner::String, impl_options=Dict())
   # Predict with Orchestra learner
   srand(1)
   pycall(RO.r["set.seed"], PyObject, 1)
-  learner = CRTWrapper({
+  learner = CRTLearner({
     :learner => caret_learner, 
     :impl_options => impl_options
   })
@@ -68,13 +68,13 @@ function behavior_check(caret_learner::String, impl_options=Dict())
 end
 
 facts("CARET learners", using_fixtures) do
-  context("CRTWrapper gives same results as its backend", using_fixtures) do
+  context("CRTLearner gives same results as its backend", using_fixtures) do
     caret_learners = ["svmLinear", "nnet", "earth"]
     for caret_learner in caret_learners
       behavior_check(caret_learner)
     end
   end
-  context("CRTWrapper with options gives same results as its backend", using_fixtures) do
+  context("CRTLearner with options gives same results as its backend", using_fixtures) do
     behavior_check("svmLinear", {:C => 5.0})
   end
 end

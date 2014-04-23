@@ -11,7 +11,7 @@ using PyCall
 N2R.activate()
 RP.importr("caret")
 
-export CRTWrapper,
+export CRTLearner,
        train!,
        predict!
 
@@ -64,11 +64,11 @@ end
 # 
 # Options for the specific CARET learner is to be passed
 # in options[:impl_options] dictionary.
-type CRTWrapper <: Learner
+type CRTLearner <: Learner
   model
   options
   
-  function CRTWrapper(options=Dict())
+  function CRTLearner(options=Dict())
     default_options = {
       # Output to train against
       # (:class).
@@ -80,7 +80,7 @@ type CRTWrapper <: Learner
   end
 end
 
-function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
+function train!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   impl_options = crtw.options[:impl_options]
   crtw.model = Dict()
   crtw.model[:learner] = crtw.options[:learner]
@@ -116,7 +116,7 @@ function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
   crtw.model[:r_model] = r_model
 end
 
-function predict!(crtw::CRTWrapper, instances::Matrix)
+function predict!(crtw::CRTLearner, instances::Matrix)
   (r_instance_df, _) = dataset_to_r_dataframe(instances)
   predictions = collect(pycall(RO.r[:predict], PyObject,
     crtw.model[:r_model],

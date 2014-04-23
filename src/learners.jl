@@ -8,8 +8,8 @@ export Learner,
        VoteEnsemble, 
        StackEnsemble,
        BestLearnerEnsemble,
-       SKLWrapper,
-       CRTWrapper,
+       SKLLearner,
+       CRTLearner,
        train!,
        predict!
 

@@ -92,18 +92,18 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 
 | Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
-| PrunedTree            | DecisionTree.jl   | accuracy | C4.5 Decision Tree.                              |
-| RandomForest          | DecisionTree.jl   | accuracy | C4.5 Random Forest.                              |
-| DecisionStumpAdaboost | DecisionTree.jl   | accuracy | C4.5 Adaboosted Decision Stumps.                 |
+| PrunedTree            | DecisionTree.jl   | class    | C4.5 Decision Tree.                              |
+| RandomForest          | DecisionTree.jl   | class    | C4.5 Random Forest.                              |
+| DecisionStumpAdaboost | DecisionTree.jl   | class    | C4.5 Adaboosted Decision Stumps.                 |
 
 
 ### Orchestra
 
 | Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
-| VoteEnsemble          | Orchestra.jl      | accuracy | Majority Vote Ensemble.                          |
-| StackEnsemble         | Orchestra.jl      | accuracy | Stack Ensemble.                                  |
-| BestLearnerEnsemble   | Orchestra.jl      | accuracy | Selects best learner out of pool.                |
+| VoteEnsemble          | Orchestra.jl      | class    | Majority Vote Ensemble.                          |
+| StackEnsemble         | Orchestra.jl      | class    | Stack Ensemble.                                  |
+| BestLearnerEnsemble   | Orchestra.jl      | class    | Selects best learner out of pool.                |
 
 
 ### Python
@@ -115,7 +115,7 @@ See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) 
 
 ```julia
 # Example usage for using scikit-learn.
-learner = SKLWrapper({
+learner = SKLLearner({
   :learner => "RandomForestClassifier", 
   :impl_options => {:max_depth => 3}
 })
@@ -123,7 +123,7 @@ learner = SKLWrapper({
 
 | Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
-| SKLWrapper            | scikit-learn 0.14 | accuracy | Wrapper to most scikit-learn machine learners.   |
+| SKLLearner            | scikit-learn 0.14 | class    | Wrapper to most scikit-learn machine learners.   |
 
 
 ### R
@@ -135,7 +135,7 @@ See [here](http://caret.r-forge.r-project.org/modelList.html) for more details.
 
 ```julia
 # Example usage for using CARET.
-learner = CRTWrapper({
+learner = CRTLearner({
   :learner => "svmLinear", 
   :impl_options => {:C => 5.0}
 })
@@ -143,7 +143,7 @@ learner = CRTWrapper({
 
 | Learner               | Library           | Outputs  | Description                                      |
 |-----------------------|-------------------|----------|--------------------------------------------------|
-| CRTWrapper            | caret 6.0         | accuracy | Wrapper to all CARET machine learners.           |
+| CRTLearner            | caret 6.0         | class    | Wrapper to all CARET machine learners.           |
 
 ## Known Limitations
 

@@ -67,10 +67,10 @@ facts("Orchestra system", using_fixtures) do
     push!(learners, RandomForest())
     push!(learners, StackEnsemble())
     if HAS_SKL
-      push!(learners, SKLWrapper())
+      push!(learners, SKLLearner())
     end
     if HAS_CRT
-      push!(learners, CRTWrapper())
+      push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})
     predictions = train_and_predict!(ensemble, nfcp)
