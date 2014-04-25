@@ -29,8 +29,8 @@ test_labels = labels[test_ind]
 
 ```julia
 learner = PrunedTree()
-train!(learner, train_instances, train_labels)
-predictions = predict!(learner, test_instances)
+fit!(learner, train_instances, train_labels)
+predictions = transform!(learner, test_instances)
 result = score(:accuracy, test_labels, predictions)
 ```
 

@@ -26,7 +26,7 @@ function behavior_check(caret_learner::String, impl_options=Dict())
     :learner => caret_learner, 
     :impl_options => impl_options
   })
-  orchestra_predictions = train_and_predict!(learner, nfcp)
+  orchestra_predictions = train_and_transform!(learner, nfcp)
 
   # Predict with backend learner
   srand(1)

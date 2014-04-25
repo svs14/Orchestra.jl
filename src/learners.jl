@@ -10,8 +10,8 @@ export Learner,
        BestLearnerEnsemble,
        SKLLearner,
        CRTLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Obtain system details
 import Orchestra.System: HAS_SKL, HAS_CRT

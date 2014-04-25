@@ -35,7 +35,7 @@ facts("Orchestra system", using_fixtures) do
 
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      train_and_predict!(learner, nfcp)
+      train_and_transform!(learner, nfcp)
     end
 
     @fact 1 => 1
@@ -55,8 +55,8 @@ facts("Orchestra system", using_fixtures) do
     # Test all learners
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      train!(learner, train_instances, train_labels)
-      predict!(learner, test_instances)
+      fit!(learner, train_instances, train_labels)
+      transform!(learner, test_instances)
     end
 
     @fact 1 => 1
@@ -73,7 +73,7 @@ facts("Orchestra system", using_fixtures) do
       push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})
-    predictions = train_and_predict!(ensemble, nfcp)
+    predictions = train_and_transform!(ensemble, nfcp)
 
     @fact 1 => 1
   end

@@ -32,7 +32,7 @@ facts("Orchestra util functions", using_fixtures) do
   end
   context("score calculates accuracy", using_fixtures) do
     learner = PerfectScoreLearner({:problem => nfcp})
-    predictions = train_and_predict!(learner, nfcp)
+    predictions = train_and_transform!(learner, nfcp)
 
     @fact score(
       :accuracy, nfcp.test_labels, predictions
@@ -40,7 +40,7 @@ facts("Orchestra util functions", using_fixtures) do
   end
   context("score throws exception on unknown metric", using_fixtures) do
     learner = PerfectScoreLearner({:problem => nfcp})
-    predictions = train_and_predict!(learner, nfcp)
+    predictions = train_and_transform!(learner, nfcp)
 
     @fact_throws score(
       :fake, nfcp.test_labels, predictions

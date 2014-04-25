@@ -8,8 +8,8 @@ DT = DecisionTree
 export PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
-       train!, 
-       predict!
+       fit!, 
+       transform!
 
 # Pruned ID3 decision tree.
 # 
@@ -44,12 +44,12 @@ type PrunedTree <: Learner
   end
 end
 
-function train!(tree::PrunedTree, instances::Matrix, labels::Vector)
+function fit!(tree::PrunedTree, instances::Matrix, labels::Vector)
   impl_options = tree.options[:impl_options]
   tree.model = DT.build_tree(labels, instances)
   tree.model = DT.prune_tree(tree.model, impl_options[:purity_threshold])
 end
-function predict!(tree::PrunedTree, instances::Matrix)
+function transform!(tree::PrunedTree, instances::Matrix)
   return DT.apply_tree(tree.model, instances)
 end
 
@@ -94,7 +94,7 @@ type RandomForest <: Learner
   end
 end
 
-function train!(forest::RandomForest, instances::Matrix, labels::Vector)
+function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
   # Set training-dependent options
   impl_options = forest.options[:impl_options]
   if impl_options[:num_subfeatures] == nothing
@@ -112,7 +112,7 @@ function train!(forest::RandomForest, instances::Matrix, labels::Vector)
   )
 end
 
-function predict!(forest::RandomForest, instances::Matrix)
+function transform!(forest::RandomForest, instances::Matrix)
   return DT.apply_forest(forest.model, instances)
 end
 
@@ -149,7 +149,7 @@ type DecisionStumpAdaboost <: Learner
   end
 end
 
-function train!(adaboost::DecisionStumpAdaboost, 
+function fit!(adaboost::DecisionStumpAdaboost, 
   instances::Matrix, labels::Vector)
 
   # NOTE(svs14): Variable 'model' renamed to 'ensemble'.
@@ -165,7 +165,7 @@ function train!(adaboost::DecisionStumpAdaboost,
   }
 end
 
-function predict!(adaboost::DecisionStumpAdaboost, instances::Matrix)
+function transform!(adaboost::DecisionStumpAdaboost, instances::Matrix)
   return DT.apply_adaboost_stumps(
     adaboost.model[:ensemble], adaboost.model[:coefficients], instances
   )

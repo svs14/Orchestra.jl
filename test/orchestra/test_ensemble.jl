@@ -20,8 +20,8 @@ facts("Ensemble learners", using_fixtures) do
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
-    predictions = predict!(learner, nfcp.test_instances)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = transform!(learner, nfcp.test_instances)
     expected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => expected_predictions
@@ -39,8 +39,8 @@ facts("Ensemble learners", using_fixtures) do
         PerfectScoreLearner()
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
-    predictions = predict!(learner, nfcp.test_instances)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = transform!(learner, nfcp.test_instances)
     unexpected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => not(unexpected_predictions)
@@ -56,7 +56,7 @@ facts("Ensemble learners", using_fixtures) do
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
 
     @fact learner.model[:best_learner_index] => 2
   end

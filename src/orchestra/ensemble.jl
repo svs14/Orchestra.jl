@@ -6,7 +6,7 @@ import Orchestra.Util: holdout, kfold, score
 import Stats
 import MLBase
 
-import Orchestra.Learners.DecisionTreeWrapper: train!, predict!
+import Orchestra.Learners.DecisionTreeWrapper: fit!, transform!
 import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
 import Orchestra.Learners.DecisionTreeWrapper: RandomForest
 import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
@@ -14,8 +14,8 @@ import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
 export VoteEnsemble, 
        StackEnsemble,
        BestLearnerEnsemble, 
-       train!, 
-       predict!
+       fit!, 
+       transform!
 
 # Set of machine learners that majority vote to decide prediction.
 #
@@ -44,19 +44,19 @@ type VoteEnsemble <: Learner
   end
 end
 
-function train!(ve::VoteEnsemble, instances::Matrix, labels::Vector)
+function fit!(ve::VoteEnsemble, instances::Matrix, labels::Vector)
   # Train all learners
   learners = ve.options[:learners]
   for learner in learners
-    train!(learner, instances, labels)
+    fit!(learner, instances, labels)
   end
   ve.model = { :learners => learners }
 end
 
-function predict!(ve::VoteEnsemble, instances::Matrix)
+function transform!(ve::VoteEnsemble, instances::Matrix)
   # Make learners vote
   learners = ve.options[:learners]
-  predictions = map(learner -> predict!(learner, instances), learners)
+  predictions = map(learner -> transform!(learner, instances), learners)
   # Return majority vote prediction
   return Stats.mode(predictions)
 end
@@ -100,7 +100,7 @@ type StackEnsemble <: Learner
   end
 end
 
-function train!(se::StackEnsemble, instances::Matrix, labels::Vector)
+function fit!(se::StackEnsemble, instances::Matrix, labels::Vector)
   learners = se.options[:learners]
   num_learners = size(learners, 1)
   num_instances = size(instances, 1)
@@ -120,7 +120,7 @@ function train!(se::StackEnsemble, instances::Matrix, labels::Vector)
   
   # Train all learners
   for learner in learners
-    train!(learner, learner_instances, learner_labels)
+    fit!(learner, learner_instances, learner_labels)
   end
   
   # Train stacker on learners' outputs
@@ -130,7 +130,7 @@ function train!(se::StackEnsemble, instances::Matrix, labels::Vector)
   stacker_instances = build_stacker_instances(
     learners, stack_instances, label_map, keep_original_features
   )
-  train!(stacker, stacker_instances, stack_labels)
+  fit!(stacker, stacker_instances, stack_labels)
   
   # Build model
   se.model = {
@@ -141,7 +141,7 @@ function train!(se::StackEnsemble, instances::Matrix, labels::Vector)
   }
 end
 
-function predict!(se::StackEnsemble, instances::Matrix)
+function transform!(se::StackEnsemble, instances::Matrix)
   # Build stacker instances
   learners = se.model[:learners]
   stacker = se.model[:stacker]
@@ -152,7 +152,7 @@ function predict!(se::StackEnsemble, instances::Matrix)
   )
 
   # Predict
-  return predict!(stacker, stacker_instances)
+  return transform!(stacker, stacker_instances)
 end
 
 # Build stacker instances.
@@ -168,7 +168,7 @@ function build_stacker_instances{T<:Learner}(
 
   # Fill stack instances with predictions from learners
   for l_index = 1:num_learners
-    predictions = predict!(learners[l_index], instances)
+    predictions = transform!(learners[l_index], instances)
     for p_index in 1:size(predictions, 1)
       pred_encoding = MLBase.labelencode(label_map, predictions[p_index])
       pred_column = (l_index-1) * num_labels + pred_encoding
@@ -227,7 +227,7 @@ type BestLearnerEnsemble <: Learner
   end
 end
 
-function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
+function fit!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
   # Generate partitions
   partition_generator = bls.options[:partition_generator]
   partitions = partition_generator(instances, labels)
@@ -249,8 +249,8 @@ function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
     validation_instances = instances[rest, :]
     validation_labels = labels[rest]
 
-    train!(learner, training_instances, training_labels)
-    predictions = predict!(learner, validation_instances)
+    fit!(learner, training_instances, training_labels)
+    predictions = transform!(learner, validation_instances)
     result = score(:accuracy, validation_labels, predictions)
     learner_partition_scores[l_index, p_index] = result
   end
@@ -261,7 +261,7 @@ function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
   best_learner = learners[best_learner_index]
   
   # Retrain best learner on all training instances
-  train!(best_learner, instances, labels)
+  fit!(best_learner, instances, labels)
   
   # Create model
   bls.model = {
@@ -272,8 +272,8 @@ function train!(bls::BestLearnerEnsemble, instances::Matrix, labels::Vector)
   }
 end
 
-function predict!(bls::BestLearnerEnsemble, instances::Matrix)
-  predict!(bls.model[:best_learner], instances)
+function transform!(bls::BestLearnerEnsemble, instances::Matrix)
+  transform!(bls.model[:best_learner], instances)
 end
 
 end # module

@@ -7,9 +7,9 @@ export MLProblem,
        NumericFeatureClassification,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
-       train_and_predict!,
-       train!,
-       predict!
+       train_and_transform!,
+       fit!,
+       transform!
        
 abstract MLProblem
 abstract Classification <: MLProblem
@@ -62,10 +62,10 @@ type NumericFeatureClassification <: Classification
 end
 
 
-function train_and_predict!(learner::Learner, problem::MLProblem, seed=1)
+function train_and_transform!(learner::Learner, problem::MLProblem, seed=1)
     srand(seed)
-    train!(learner, problem.train_instances, problem.train_labels)
-    return predict!(learner, problem.test_instances)
+    fit!(learner, problem.train_instances, problem.train_labels)
+    return transform!(learner, problem.test_instances)
 end
 
 type PerfectScoreLearner <: TestLearner
@@ -81,7 +81,7 @@ type PerfectScoreLearner <: TestLearner
   end
 end
 
-function train!(
+function fit!(
   psl::PerfectScoreLearner, instances::Matrix, labels::Vector)
 
   problem = psl.options[:problem]
@@ -99,7 +99,7 @@ function train!(
   }
 end
 
-function predict!(
+function transform!(
   psl::PerfectScoreLearner, instances::Matrix)
 
   num_instances = size(instances, 1)
@@ -123,7 +123,7 @@ type AlwaysSameLabelLearner <: TestLearner
   end
 end
 
-function train!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
+function fit!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
   if awsl.options[:label] == nothing
     awsl.model = {
       :label => first(labels)
@@ -135,7 +135,7 @@ function train!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
   end
 end
 
-function predict!(awsl::AlwaysSameLabelLearner, instances::Matrix)
+function transform!(awsl::AlwaysSameLabelLearner, instances::Matrix)
   return fill(awsl.model[:label], size(instances, 1))
 end
 

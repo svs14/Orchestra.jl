@@ -12,8 +12,8 @@ N2R.activate()
 RP.importr("caret")
 
 export CRTLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Convert vector to R equivalent.
 vector_to_r{T<:Int}(vector::Vector{T}) = RO.IntVector(vector)
@@ -80,7 +80,7 @@ type CRTLearner <: Learner
   end
 end
 
-function train!(crtw::CRTLearner, instances::Matrix, labels::Vector)
+function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   impl_options = crtw.options[:impl_options]
   crtw.model = Dict()
   crtw.model[:learner] = crtw.options[:learner]
@@ -116,7 +116,7 @@ function train!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   crtw.model[:r_model] = r_model
 end
 
-function predict!(crtw::CRTLearner, instances::Matrix)
+function transform!(crtw::CRTLearner, instances::Matrix)
   (r_instance_df, _) = dataset_to_r_dataframe(instances)
   predictions = collect(pycall(RO.r[:predict], PyObject,
     crtw.model[:r_model],

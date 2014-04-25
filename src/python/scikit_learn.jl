@@ -10,8 +10,8 @@ using PyCall
 @pyimport sklearn.tree as TREE
 
 export SKLLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Available scikit-learn learners.
 learner_dict = {
@@ -71,7 +71,7 @@ type SKLLearner <: Learner
   end
 end
 
-function train!(sklw::SKLLearner, instances::Matrix, labels::Vector)
+function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   impl_options = copy(sklw.options[:impl_options])
   learner = sklw.options[:learner]
   py_learner = learner_dict[learner]
@@ -88,7 +88,7 @@ function train!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   sklw.model[:fit](instances, labels)
 end
 
-function predict!(sklw::SKLLearner, instances::Matrix)
+function transform!(sklw::SKLLearner, instances::Matrix)
   return collect(sklw.model[:predict](instances))
 end
 

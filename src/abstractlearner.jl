@@ -3,12 +3,12 @@ module AbstractLearner
 
 export Learner,
        TestLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Learner abstract type which all machine learners implement.
 # All learner types must have implementations 
-# of function `train!` and `predict!`.
+# of function `fit!` and `transform!`.
 abstract Learner
 
 # Test learner. 
@@ -20,8 +20,8 @@ abstract TestLearner <: Learner
 # @param learner Target machine learner.
 # @param instances Training instances.
 # @param labels Training labels.
-function train!(learner::Learner, instances::Matrix, labels::Vector)
-  error(typeof(learner), " does not implement train!")
+function fit!(learner::Learner, instances::Matrix, labels::Vector)
+  error(typeof(learner), " does not implement fit!")
 end
 
 # Trains learner on provided instances and labels.
@@ -29,8 +29,8 @@ end
 # @param learner Target machine learner.
 # @param instances Candidate instances.
 # @return Predictions.
-function predict!(learner::Learner, instances::Matrix)
-  error(typeof(learner), " does not implement predict!")
+function transform!(learner::Learner, instances::Matrix)
+  error(typeof(learner), " does not implement transform!")
 end
 
 end # module
