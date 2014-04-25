@@ -1,7 +1,7 @@
 # Decision trees as found in DecisionTree Julia package.
 module DecisionTreeWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
 import DecisionTree
 DT = DecisionTree
 

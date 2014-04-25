@@ -1,15 +1,15 @@
 # Ensemble learning methods.
 module EnsembleMethods
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
 import Orchestra.Util: holdout, kfold, score
 import Stats
 import MLBase
 
-import Orchestra.Learners.DecisionTreeWrapper: fit!, transform!
-import Orchestra.Learners.DecisionTreeWrapper: PrunedTree
-import Orchestra.Learners.DecisionTreeWrapper: RandomForest
-import Orchestra.Learners.DecisionTreeWrapper: DecisionStumpAdaboost
+import Orchestra.Transformers.DecisionTreeWrapper: fit!, transform!
+import Orchestra.Transformers.DecisionTreeWrapper: PrunedTree
+import Orchestra.Transformers.DecisionTreeWrapper: RandomForest
+import Orchestra.Transformers.DecisionTreeWrapper: DecisionStumpAdaboost
 
 export VoteEnsemble, 
        StackEnsemble,

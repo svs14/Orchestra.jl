@@ -1,7 +1,7 @@
 # Wrapper module for scikit-learn machine learners.
 module ScikitLearnWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
 using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM

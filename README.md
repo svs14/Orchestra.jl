@@ -13,7 +13,7 @@ composition.
 ```julia
 import RDatasets
 using Orchestra.Util
-using Orchestra.Learners
+using Orchestra.Transformers
 
 dataset = RDatasets.dataset("datasets", "iris")
 instances = array(dataset[:, 1:(end-1)])

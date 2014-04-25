@@ -7,7 +7,7 @@ nfcp = NumericFeatureClassification()
 using FactCheck
 using Fixtures
 
-importall Orchestra.Learners.DecisionTreeWrapper
+importall Orchestra.Transformers.DecisionTreeWrapper
 using DecisionTree
 
 facts("DecisionTree learners", using_fixtures) do

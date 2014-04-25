@@ -1,6 +1,6 @@
 module FixtureLearners
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
 
 export MLProblem,
        Classification,

@@ -7,8 +7,8 @@ nfcp = NumericFeatureClassification()
 using FactCheck
 using Fixtures
 
-importall Orchestra.AbstractLearner
-importall Orchestra.Learners.ScikitLearnWrapper
+importall Orchestra.Types
+importall Orchestra.Transformers.ScikitLearnWrapper
 using PyCall
 @pyimport sklearn.neighbors as NN
 @pyimport random as RAN

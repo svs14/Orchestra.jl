@@ -8,8 +8,8 @@ using FactCheck
 using Fixtures
 
 using MLBase
-importall Orchestra.AbstractLearner
-importall Orchestra.Learners.CaretWrapper
+importall Orchestra.Types
+importall Orchestra.Transformers.CaretWrapper
 CW = CaretWrapper
 using PyCall
 @pyimport rpy2.robjects as RO

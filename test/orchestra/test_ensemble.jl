@@ -7,7 +7,7 @@ nfcp = NumericFeatureClassification()
 using FactCheck
 using Fixtures
 
-importall Orchestra.Learners.EnsembleMethods
+importall Orchestra.Transformers.EnsembleMethods
 
 facts("Ensemble learners", using_fixtures) do
   context("VoteEnsemble predicts according to majority", using_fixtures) do

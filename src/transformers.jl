@@ -1,7 +1,8 @@
-# Learner definitions and implementations.
-module Learners
+# Transformer definitions and implementations.
+module Transformers
 
-export Learner,
+export Transformer,
+       Learner,
        PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
@@ -16,26 +17,26 @@ export Learner,
 # Obtain system details
 import Orchestra.System: HAS_SKL, HAS_CRT
 
-# Include abstract learner as convenience
-importall Orchestra.AbstractLearner
+# Include abstract types as convenience
+importall Orchestra.Types
 
-# Include atomic Julia learners
+# Include Julia transformers
 include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
 
-# Include atomic Python learners
+# Include Python transformers
 if HAS_SKL
   include(joinpath("python", "scikit_learn.jl"))
   importall .ScikitLearnWrapper
 end
 
-# Include atomic R learners
+# Include R transformers
 if HAS_CRT
   include(joinpath("r", "caret.jl"))
   importall .CaretWrapper
 end
 
-# Include aggregate learners last, dependent on atomic learners
+# Include aggregate transformers last, dependent on atomic transformers
 include(joinpath("orchestra", "ensemble.jl"))
 importall .EnsembleMethods
 

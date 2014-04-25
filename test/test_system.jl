@@ -1,9 +1,9 @@
 # System tests.
 module TestSystem
 
-using Orchestra.AbstractLearner
+using Orchestra.Types
 using Orchestra.System
-using Orchestra.Learners
+using Orchestra.Transformers
 using Orchestra.Util
 
 include("fixture_learners.jl")

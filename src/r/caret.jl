@@ -1,7 +1,7 @@
 # Wrapper to CARET library.
 module CaretWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
 
 using MLBase
 using PyCall
