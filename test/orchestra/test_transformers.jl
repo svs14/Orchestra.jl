@@ -29,12 +29,11 @@ facts("Orchestra transformers", using_fixtures) do
 
     @fact transformed => expected_transformed
   end
-
   context("OneHotEncoder transforms with options", using_fixtures) do
-    nominal_columns = [2, 4]
+    nominal_columns = [3, 5]
     nominal_column_values_map = {
-      2 => ["a", "b", "c", "d", "e"],
-      4 => ["a", "b", "c", "d", "e"]
+      3 => ["a", "b", "c", "d", "e"],
+      5 => ["a", "b", "c", "d", "e"]
     }
     encoder = OneHotEncoder({
       :nominal_columns => nominal_columns,
@@ -43,7 +42,28 @@ facts("Orchestra transformers", using_fixtures) do
     fit!(encoder, fcp.train_instances, fcp.train_labels)
     transformed = transform!(encoder, fcp.test_instances)
 
-    @fact size(transformed, 2) => 12
+    @fact size(transformed, 2) => 13
+  end
+
+  context("Imputer replaces NA", using_fixtures) do
+    instances = [
+      1.0      1.0;
+      nan(1.0) 1.0;
+      0.0      0.0;
+      nan(0.0) 0.0;
+    ]
+    labels = ["x";"x";"y";"y"]
+    expected_transformed = [
+      1.0 1.0;
+      0.5 1.0;
+      0.0 0.0;
+      0.5 0.0;
+    ]
+    imputer = Imputer()
+    fit!(imputer, instances, labels)
+    transformed = transform!(imputer, instances)
+
+    @fact transformed => expected_transformed
   end
 end
 

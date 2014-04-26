@@ -4,6 +4,7 @@ module Transformers
 export Transformer,
        Learner,
        OneHotEncoder,
+       Imputer,
        PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,

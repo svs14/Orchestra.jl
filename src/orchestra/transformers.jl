@@ -5,6 +5,7 @@ importall Orchestra.Types
 import Orchestra.Util: infer_eltype
 
 export OneHotEncoder,
+       Imputer,
        fit!,
        transform!
 
@@ -110,6 +111,53 @@ function find_nominal_columns(instances::Matrix)
     end
   end
   return nominal_columns
+end
+
+# Imputes NaN values from FloatingPoint features.
+#
+# <pre>
+# default_options = {
+#   # Imputation strategy.
+#   # Statistic that takes a vector such as mean or median.
+#   :strategy => mean
+# }
+# </pre>
+type Imputer <: Transformer
+  model
+  options
+
+  function Imputer(options=Dict())
+    default_options = {
+      # Imputation strategy.
+      # Statistic that takes a vector such as mean or median.
+      :strategy => mean
+    }
+    new(nothing, merge(default_options, options))
+  end
+end
+
+function fit!(imp::Imputer, instances::Matrix, labels::Vector)
+  imp.model = imp.options
+end
+
+function transform!(imp::Imputer, instances::Matrix)
+  new_instances = copy(instances)
+  strategy = imp.model[:strategy]
+
+  for column in 1:size(instances, 2)
+    column_values = instances[:, column]
+    col_eltype = infer_eltype(column_values)
+
+    if issubtype(col_eltype, FloatingPoint)
+      na_rows = isnan(instances[:, column])
+      if any(na_rows)
+        fill_value = strategy(column_values[!na_rows])
+        new_instances[na_rows, column] = fill_value
+      end
+    end
+  end
+
+  return new_instances
 end
 
 end # module
