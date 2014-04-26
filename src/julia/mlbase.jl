@@ -1,4 +1,4 @@
-# MLBase Transformers.
+# MLBase transformers.
 module MLBaseWrapper
 
 importall Orchestra.Types
