@@ -3,6 +3,7 @@ module TestOrchestraTransformers
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
 fcp = FeatureClassification()
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
@@ -83,6 +84,15 @@ facts("Orchestra transformers", using_fixtures) do
     transformed = transform!(wrapper, fcp.test_instances)
 
     @fact size(transformed, 2) => 11
+  end
+
+  context("Identity returns instances as is", using_fixtures) do
+    id = Identity()
+    fit!(id, fcp.train_instances, nfcp.train_labels)
+    transformed = transform!(id, nfcp.test_instances)
+    expected_transformed = nfcp.test_instances
+
+    @fact transformed => expected_transformed
   end
 end
 
