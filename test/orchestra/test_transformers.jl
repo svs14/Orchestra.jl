@@ -74,6 +74,16 @@ facts("Orchestra transformers", using_fixtures) do
     @fact size(transformed, 2) => 11
     @fact true => !any(map(x -> isnan(x), transformed))
   end
+
+  context("Wrapper delegates to transformer", using_fixtures) do
+    wrapper = Wrapper({
+      :transformer => OneHotEncoder()
+    })
+    fit!(wrapper, fcp.train_instances, fcp.train_labels)
+    transformed = transform!(wrapper, fcp.test_instances)
+
+    @fact size(transformed, 2) => 11
+  end
 end
 
 end # module

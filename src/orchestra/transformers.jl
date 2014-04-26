@@ -7,6 +7,7 @@ import Orchestra.Util: infer_eltype
 export OneHotEncoder,
        Imputer,
        Pipeline,
+       Wrapper,
        fit!,
        transform!
 
@@ -114,6 +115,7 @@ function find_nominal_columns(instances::Matrix)
   return nominal_columns
 end
 
+
 # Imputes NaN values from FloatingPoint features.
 #
 # <pre>
@@ -160,6 +162,7 @@ function transform!(imp::Imputer, instances::Matrix)
 
   return new_instances
 end
+
 
 # Chains multiple transformers in sequence.
 #
@@ -218,6 +221,54 @@ function transform!(pipe::Pipeline, instances::Matrix)
   end
 
   return current_instances
+end
+
+
+# Wraps around an Orchestra transformer.
+#
+# <pre>
+# default_options = {
+#   # Transformer to call.
+#   :transformer => OneHotEncoder(),
+#   # Transformer options.
+#   :transformer_options => nothing
+# }
+# </pre>
+type Wrapper <: Transformer
+  model
+  options
+
+  function Wrapper(options=Dict())
+    default_options = {
+      # Transformer to call.
+      :transformer => OneHotEncoder(),
+      # Transformer options.
+      :transformer_options => nothing
+    }
+    new(nothing, merge(default_options, options))
+  end
+end
+
+# NOTE(svs14): Method is only idempotent if the same transformer_options
+#              are overriden at each subsequent fit! call.
+function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
+  transformer = wrapper.options[:transformer]
+  transformer_options = wrapper.options[:transformer_options]
+
+  if transformer_options != nothing
+    merge!(transformer.options, transformer_options)
+  end
+  fit!(transformer, instances, labels)
+
+  wrapper.model = {
+      :transformer => transformer,
+      :transformer_options => transformer_options
+  }
+end
+
+function transform!(wrapper::Wrapper, instances::Matrix)
+  transformer = wrapper.model[:transformer]
+  return transform!(transformer, instances)
 end
 
 end # module
