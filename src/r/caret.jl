@@ -2,8 +2,8 @@
 module CaretWrapper
 
 importall Orchestra.Types
+import Orchestra.Util: infer_eltype
 
-using MLBase
 using PyCall
 @pyimport rpy2.robjects as RO
 @pyimport rpy2.robjects.packages as RP
@@ -25,14 +25,12 @@ function vector_to_r(vector::Vector{Any})
   if isempty(vector) 
     return vector_to_r(convert(Vector{String}, vector))
   end
-  # Fail if differing element types in vector
-  all_elements_same_type = all(x -> typeof(x) == typeof(first(vector)), vector)
-  if !all_elements_same_type
+  vec_eltype = infer_eltype(vector)
+  if vec_eltype == Any
     error("Cannot handle R conversion for vector with differing element types.")
   end
-  # Convert vector to more specific type
-  element_type = typeof(first(vector))
-  return vector_to_r(convert(Vector{element_type}, vector))
+
+  return vector_to_r(convert(Vector{vec_eltype}, vector))
 end
 vector_to_r(vector::Vector) = error(
   "Cannot handle R conversion for $(typeof(vector))."

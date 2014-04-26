@@ -3,6 +3,7 @@ module Transformers
 
 export Transformer,
        Learner,
+       OneHotEncoder,
        PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
@@ -19,6 +20,10 @@ import Orchestra.System: HAS_SKL, HAS_CRT
 
 # Include abstract types as convenience
 importall Orchestra.Types
+
+# Include atomic Orchestra transformers
+include(joinpath("orchestra", "transformers.jl"))
+importall .OrchestraTransformers
 
 # Include Julia transformers
 include(joinpath("julia", "decisiontree.jl"))

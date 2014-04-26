@@ -6,7 +6,8 @@ using Match
 
 export holdout,
        kfold,
-       score
+       score,
+       infer_eltype
 
 # Holdout method that partitions a collection
 # into two partitions.
@@ -46,6 +47,30 @@ function score(metric::Symbol, actual, predicted)
     :accuracy => mean(actual .== predicted) * 100.0
     _ => error("Metric $metric not implemented for score.")
   end
+end
+
+# Returns element type of vector unless it is Any.
+# If Any, returns the most specific type that can be
+# inferred from the vector elements.
+#
+# @param vector Vector to infer element type on.
+# @return Inferred element type.
+function infer_eltype(vector::Vector)
+  # Obtain element type of vector
+  vec_eltype = eltype(vector)
+
+  # If element type of Vector is Any and not empty,
+  # and all elements are of the same type,
+  # then return the vector elements' type.
+  if vec_eltype == Any && !isempty(vector)
+    all_elements_same_type = all(x -> typeof(x) == typeof(first(vector)), vector)
+    if all_elements_same_type
+      vec_eltype = typeof(first(vector))
+    end
+  end
+
+  # Return inferred element type
+  return vec_eltype
 end
 
 end # module

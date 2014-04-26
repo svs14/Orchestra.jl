@@ -20,6 +20,7 @@ facts("Orchestra util functions", using_fixtures) do
     @fact intersect(left, right) => isempty
     @fact size(union(left, right), 1) => n
   end
+
   context("kfold returns k partitions", using_fixtures) do
     num_instances = 10
     num_partitions = 3
@@ -30,6 +31,7 @@ facts("Orchestra util functions", using_fixtures) do
     @fact size([partitions...], 1) => size(unique([partitions...]), 1)
     @fact size(union(partitions...), 1) => num_instances
   end
+
   context("score calculates accuracy", using_fixtures) do
     learner = PerfectScoreLearner({:problem => nfcp})
     predictions = train_and_transform!(learner, nfcp)
@@ -45,6 +47,11 @@ facts("Orchestra util functions", using_fixtures) do
     @fact_throws score(
       :fake, nfcp.test_labels, predictions
     )
+  end
+
+  context("infer_eltype returns inferred elements type", using_fixtures) do
+    vector = [1,2,3,"a"]
+    @fact infer_eltype(vector[1:3]) => Int
   end
 end
 

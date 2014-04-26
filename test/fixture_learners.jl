@@ -4,6 +4,7 @@ importall Orchestra.Types
 
 export MLProblem,
        Classification,
+       FeatureClassification,
        NumericFeatureClassification,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
@@ -13,6 +14,51 @@ export MLProblem,
        
 abstract MLProblem
 abstract Classification <: MLProblem
+
+type FeatureClassification <: Classification
+  train_instances::Matrix
+  test_instances::Matrix
+  train_labels::Vector
+  test_labels::Vector
+
+  function FeatureClassification()
+    train_dataset = [
+      1 "b" 2 "c" "a";
+      2 "b" 3 "c" "a";
+      3 "b" 4 "c" "a";
+      -1 "d" -2 "c" "b";
+      -2 "d" -3 "c" "b";
+      -3 "d" -4 "c" "b";
+      1 "a" 1 "a" "c";
+      2 "b" 2 "b" "c";
+      3 "c" 3 "c" "c";
+      0 "e" 1 "a" "d";
+      0 "e" 2 "b" "d";
+      0 "e" 3 "c" "d";
+    ]
+    test_dataset = [
+      4 "b" 5 "c" "a";
+      5 "b" 6 "c" "a";
+      -4 "d" -5 "c" "b";
+      -5 "d" -6 "c" "b";
+      4 "d" 4 "d" "c";
+      5 "e" 5 "e" "c";
+      0 "e" 4 "d" "d";
+      0 "e" 5 "e" "d";
+    ]
+
+    train_instances = train_dataset[:, 1:end-1]
+    test_instances = test_dataset[:, 1:end-1]
+    train_labels = train_dataset[:, end]
+    test_labels = test_dataset[:, end]
+    new(
+      train_instances,
+      test_instances,
+      train_labels,
+      test_labels
+    ) 
+  end
+end
 
 type NumericFeatureClassification <: Classification
   train_instances::Matrix
