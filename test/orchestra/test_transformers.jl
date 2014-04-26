@@ -15,13 +15,13 @@ facts("Orchestra transformers", using_fixtures) do
       2 "a" 1 "c";
       1 "b" 2 "d";
     ]
-    expected_transformed = [
-      2 1 0 1 1 0;
-      1 0 1 2 0 1;
-    ]
     labels = [
       "y";
       "z";
+    ]
+    expected_transformed = [
+      2 1 0 1 1 0;
+      1 0 1 2 0 1;
     ]
     encoder = OneHotEncoder()
     fit!(encoder, instances, labels)

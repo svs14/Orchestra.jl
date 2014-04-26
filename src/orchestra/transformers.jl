@@ -15,13 +15,15 @@ export OneHotEncoder,
 # default_options = {
 #   # Nominal columns
 #   :nominal_columns => nothing,
-#   # Nominal column values map
+#   # Nominal column values map. Key is column index, value is list of
+#   # possible values for that column.
 #   :nominal_column_values_map => nothing
 # }
 # </pre>
 type OneHotEncoder <: Transformer
   model
   options
+
   function OneHotEncoder(options=Dict())
     default_options = {
       # Nominal columns

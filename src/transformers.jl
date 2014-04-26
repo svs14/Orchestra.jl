@@ -7,6 +7,7 @@ export Transformer,
        PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
+       Standardizer,
        VoteEnsemble, 
        StackEnsemble,
        BestLearnerEnsemble,
@@ -28,6 +29,8 @@ importall .OrchestraTransformers
 # Include Julia transformers
 include(joinpath("julia", "decisiontree.jl"))
 importall .DecisionTreeWrapper
+include(joinpath("julia", "mlbase.jl"))
+importall .MLBaseWrapper
 
 # Include Python transformers
 if HAS_SKL
