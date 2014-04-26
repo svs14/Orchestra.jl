@@ -10,7 +10,7 @@ using Fixtures
 importall Orchestra.Transformers.MLBaseWrapper
 
 facts("MLBase transformers", using_fixtures) do
-  context("Standardizer transforms features", using_fixtures) do
+  context("StandardScaler transforms features", using_fixtures) do
     instances = [
       5 10;
       -5 0;
@@ -26,9 +26,9 @@ facts("MLBase transformers", using_fixtures) do
       -1.0 -1.0;
       0.0 0.0;
     ]
-    standardizer = Standardizer()
-    fit!(standardizer, instances, labels)
-    transformed = transform!(standardizer, instances)
+    standard_scaler = StandardScaler()
+    fit!(standard_scaler, instances, labels)
+    transformed = transform!(standard_scaler, instances)
 
     @fact transformed => expected_transformed
   end

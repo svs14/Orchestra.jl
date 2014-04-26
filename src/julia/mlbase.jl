@@ -4,7 +4,7 @@ module MLBaseWrapper
 importall Orchestra.Types
 import MLBase: Standardize, estimate, transform
 
-export Standardizer,
+export StandardScaler,
        fit!,
        transform!
 
@@ -17,11 +17,11 @@ export Standardizer,
 #   :scale => true
 # }
 # </pre>
-type Standardizer <: Transformer
+type StandardScaler <: Transformer
   model
   options
 
-  function Standardizer(options=Dict())
+  function StandardScaler(options=Dict())
     default_options = {
       :center => true,
       :scale => true
@@ -30,14 +30,14 @@ type Standardizer <: Transformer
   end
 end
 
-function fit!(st::Standardizer, instances::Matrix, labels::Vector)
+function fit!(st::StandardScaler, instances::Matrix, labels::Vector)
   st_transform = estimate(Standardize, instances'; st.options...)
   st.model = {
     :standardize_transform => st_transform
   }
 end
 
-function transform!(st::Standardizer, instances::Matrix)
+function transform!(st::StandardScaler, instances::Matrix)
   st_transform = st.model[:standardize_transform]
   transposed_instances = instances'
   return transform(st_transform, transposed_instances)'
