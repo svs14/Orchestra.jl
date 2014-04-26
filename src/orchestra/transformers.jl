@@ -6,11 +6,12 @@ import Orchestra.Util: infer_eltype
 
 export OneHotEncoder,
        Imputer,
+       Pipeline,
        fit!,
        transform!
 
 # Transforms instances with nominal features into one-hot form 
-# and coerces the instance matrix to be of element type Real.
+# and coerces the instance matrix to be of element type FloatingPoint.
 #
 # <pre>
 # default_options = {
@@ -64,12 +65,12 @@ function transform!(ohe::OneHotEncoder, instances::Matrix)
   nominal_columns = ohe.model[:nominal_columns]
   nominal_column_values_map = ohe.model[:nominal_column_values_map]
 
-  # Create new transformed instance matrix of type Real
+  # Create new transformed instance matrix of type FloatingPoint
   num_rows = size(instances, 1)
   num_columns = 
     (size(instances, 2) - length(nominal_columns)) + 
     sum(map(x -> length(x), values(nominal_column_values_map)))
-  transformed_instances = zeros(Real, num_rows, num_columns)
+  transformed_instances = zeros(FloatingPoint, num_rows, num_columns)
 
   # Fill transformed instance matrix
   col_start_index = 1
@@ -148,8 +149,8 @@ function transform!(imp::Imputer, instances::Matrix)
     column_values = instances[:, column]
     col_eltype = infer_eltype(column_values)
 
-    if issubtype(col_eltype, FloatingPoint)
-      na_rows = isnan(instances[:, column])
+    if issubtype(col_eltype, Real)
+      na_rows = map(x -> isnan(x), column_values)
       if any(na_rows)
         fill_value = strategy(column_values[!na_rows])
         new_instances[na_rows, column] = fill_value
@@ -158,6 +159,65 @@ function transform!(imp::Imputer, instances::Matrix)
   end
 
   return new_instances
+end
+
+# Chains multiple transformers in sequence.
+#
+# <pre>
+# default_options = {
+#   # Transformers to chain in sequence.
+#   :transformers => [OneHotEncoder(), Imputer(), StandardScaler()],
+#   # Transformer options applied to same index transformer.
+#   :transformer_options => []
+# }
+# </pre>
+type Pipeline <: Transformer
+  model
+  options
+
+  function Pipeline(options=Dict())
+    default_options = {
+      # Transformers as list to chain in sequence.
+      :transformers => [OneHotEncoder(), Imputer()],
+      # Transformer options as list applied to same index transformer.
+      :transformer_options => nothing
+    }
+    new(nothing, merge(default_options, options))
+  end
+end
+
+# NOTE(svs14): Method is only idempotent if the same transformer_options
+#              are overriden at each subsequent fit! call.
+function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
+  transformers = pipe.options[:transformers]
+  transformer_options = pipe.options[:transformer_options]
+
+  current_instances = instances
+  for t_index in 1:length(transformers)
+    transformer = transformers[t_index]
+    if transformer_options != nothing
+      merge!(transformer.options, transformer_options[t_index])
+    end
+    fit!(transformer, current_instances, labels)
+    current_instances = transform!(transformer, current_instances)
+  end
+
+  pipe.model = {
+      :transformers => transformers,
+      :transformer_options => transformer_options
+  }
+end
+
+function transform!(pipe::Pipeline, instances::Matrix)
+  transformers = pipe.model[:transformers]
+
+  current_instances = instances
+  for t_index in 1:length(transformers)
+    transformer = transformers[t_index]
+    current_instances = transform!(transformer, current_instances)
+  end
+
+  return current_instances
 end
 
 end # module

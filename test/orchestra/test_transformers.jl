@@ -65,6 +65,15 @@ facts("Orchestra transformers", using_fixtures) do
 
     @fact transformed => expected_transformed
   end
+
+  context("Pipeline chains transformers", using_fixtures) do
+    pipe = Pipeline()
+    fit!(pipe, fcp.train_instances, fcp.train_labels)
+    transformed = transform!(pipe, fcp.test_instances)
+
+    @fact size(transformed, 2) => 11
+    @fact true => !any(map(x -> isnan(x), transformed))
+  end
 end
 
 end # module
