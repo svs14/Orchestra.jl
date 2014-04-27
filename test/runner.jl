@@ -4,7 +4,10 @@ module TestRunner
   using Orchestra.System
 
   include("test_util.jl")
+  include(joinpath("orchestra", "test_transformers.jl"))
   include(joinpath("julia", "test_decisiontree.jl"))
+  include(joinpath("julia", "test_mlbase.jl"))
+  include(joinpath("julia", "test_dimensionalityreduction.jl"))
   include(joinpath("orchestra", "test_ensemble.jl"))
   if HAS_SKL
     include(joinpath("python", "test_scikit_learn.jl"))

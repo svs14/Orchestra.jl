@@ -1,7 +1,9 @@
 # Wrapper module for scikit-learn machine learners.
 module ScikitLearnWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
+importall Orchestra.Util
+
 using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM
@@ -10,8 +12,8 @@ using PyCall
 @pyimport sklearn.tree as TREE
 
 export SKLLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Available scikit-learn learners.
 learner_dict = {
@@ -67,11 +69,11 @@ type SKLLearner <: Learner
       # Options specific to this implementation.
       :impl_options => Dict(),
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 
-function train!(sklw::SKLLearner, instances::Matrix, labels::Vector)
+function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   impl_options = copy(sklw.options[:impl_options])
   learner = sklw.options[:learner]
   py_learner = learner_dict[learner]
@@ -88,7 +90,7 @@ function train!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   sklw.model[:fit](instances, labels)
 end
 
-function predict!(sklw::SKLLearner, instances::Matrix)
+function transform!(sklw::SKLLearner, instances::Matrix)
   return collect(sklw.model[:predict](instances))
 end
 

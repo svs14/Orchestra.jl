@@ -7,7 +7,11 @@ nfcp = NumericFeatureClassification()
 using FactCheck
 using Fixtures
 
-importall Orchestra.Learners.EnsembleMethods
+importall Orchestra.Transformers.EnsembleMethods
+import Orchestra.Transformers.DecisionTreeWrapper: fit!, transform!
+import Orchestra.Transformers.DecisionTreeWrapper: PrunedTree
+import Orchestra.Transformers.DecisionTreeWrapper: RandomForest
+import Orchestra.Transformers.DecisionTreeWrapper: DecisionStumpAdaboost
 
 facts("Ensemble learners", using_fixtures) do
   context("VoteEnsemble predicts according to majority", using_fixtures) do
@@ -20,8 +24,8 @@ facts("Ensemble learners", using_fixtures) do
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
-    predictions = predict!(learner, nfcp.test_instances)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = transform!(learner, nfcp.test_instances)
     expected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => expected_predictions
@@ -39,26 +43,49 @@ facts("Ensemble learners", using_fixtures) do
         PerfectScoreLearner()
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
-    predictions = predict!(learner, nfcp.test_instances)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+    predictions = transform!(learner, nfcp.test_instances)
     unexpected_predictions = fill("a", size(nfcp.test_instances, 1))
 
     @fact predictions => not(unexpected_predictions)
   end
 
-  context("BestLearnerEnsemble picks the best learner", using_fixtures) do
+  context("BestLearner picks the best learner", using_fixtures) do
     always_a_options = { :label => "a" }
     always_b_options = { :label => "b" }
-    learner = BestLearnerEnsemble({
+    learner = BestLearner({
       :learners => [
         AlwaysSameLabelLearner(always_a_options),
         PerfectScoreLearner(),
         AlwaysSameLabelLearner(always_b_options)
       ]
     })
-    train!(learner, nfcp.train_instances, nfcp.train_labels)
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
 
     @fact learner.model[:best_learner_index] => 2
+  end
+
+  context("BestLearner conducts grid search", using_fixtures) do
+    learner = BestLearner({
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+      :learner_options_grid => [
+        {
+          :impl_options => {
+            :purity_threshold => [0.5, 1.0]
+          }
+        },
+        Dict(),
+        {
+          :impl_options => {
+            :num_trees => [5, 10, 20], 
+            :partial_sampling => [0.5, 0.7]
+          }
+        }
+      ]
+    })
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+
+    @fact length(learner.model[:learners]) => 8
   end
 end
 

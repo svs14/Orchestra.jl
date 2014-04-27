@@ -1,9 +1,9 @@
 # Wrapper to CARET library.
 module CaretWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
+importall Orchestra.Util
 
-using MLBase
 using PyCall
 @pyimport rpy2.robjects as RO
 @pyimport rpy2.robjects.packages as RP
@@ -12,8 +12,8 @@ N2R.activate()
 RP.importr("caret")
 
 export CRTLearner,
-       train!,
-       predict!
+       fit!,
+       transform!
 
 # Convert vector to R equivalent.
 vector_to_r{T<:Int}(vector::Vector{T}) = RO.IntVector(vector)
@@ -25,14 +25,12 @@ function vector_to_r(vector::Vector{Any})
   if isempty(vector) 
     return vector_to_r(convert(Vector{String}, vector))
   end
-  # Fail if differing element types in vector
-  all_elements_same_type = all(x -> typeof(x) == typeof(first(vector)), vector)
-  if !all_elements_same_type
+  vec_eltype = infer_eltype(vector)
+  if vec_eltype == Any
     error("Cannot handle R conversion for vector with differing element types.")
   end
-  # Convert vector to more specific type
-  element_type = typeof(first(vector))
-  return vector_to_r(convert(Vector{element_type}, vector))
+
+  return vector_to_r(convert(Vector{vec_eltype}, vector))
 end
 vector_to_r(vector::Vector) = error(
   "Cannot handle R conversion for $(typeof(vector))."
@@ -76,11 +74,11 @@ type CRTLearner <: Learner
       :learner => "svmLinear",
       :impl_options => {}
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 
-function train!(crtw::CRTLearner, instances::Matrix, labels::Vector)
+function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   impl_options = crtw.options[:impl_options]
   crtw.model = Dict()
   crtw.model[:learner] = crtw.options[:learner]
@@ -116,7 +114,7 @@ function train!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   crtw.model[:r_model] = r_model
 end
 
-function predict!(crtw::CRTLearner, instances::Matrix)
+function transform!(crtw::CRTLearner, instances::Matrix)
   (r_instance_df, _) = dataset_to_r_dataframe(instances)
   predictions = collect(pycall(RO.r[:predict], PyObject,
     crtw.model[:r_model],

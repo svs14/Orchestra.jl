@@ -8,8 +8,8 @@ using FactCheck
 using Fixtures
 
 using MLBase
-importall Orchestra.AbstractLearner
-importall Orchestra.Learners.CaretWrapper
+importall Orchestra.Types
+importall Orchestra.Transformers.CaretWrapper
 CW = CaretWrapper
 using PyCall
 @pyimport rpy2.robjects as RO
@@ -26,7 +26,7 @@ function behavior_check(caret_learner::String, impl_options=Dict())
     :learner => caret_learner, 
     :impl_options => impl_options
   })
-  orchestra_predictions = train_and_predict!(learner, nfcp)
+  orchestra_predictions = fit_and_transform!(learner, nfcp)
 
   # Predict with backend learner
   srand(1)

@@ -13,7 +13,7 @@ composition.
 ```julia
 import RDatasets
 using Orchestra.Util
-using Orchestra.Learners
+using Orchestra.Transformers
 
 dataset = RDatasets.dataset("datasets", "iris")
 instances = array(dataset[:, 1:(end-1)])
@@ -29,8 +29,8 @@ test_labels = labels[test_ind]
 
 ```julia
 learner = PrunedTree()
-train!(learner, train_instances, train_labels)
-predictions = predict!(learner, test_instances)
+fit!(learner, train_instances, train_labels)
+predictions = transform!(learner, test_instances)
 result = score(:accuracy, test_labels, predictions)
 ```
 
@@ -49,7 +49,7 @@ learner = RandomForest()
 ### Which is best? Machine decides
 
 ```julia
-learner = BestLearnerEnsemble({
+learner = BestLearner({
   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 })
 ```
@@ -103,7 +103,7 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | VoteEnsemble          | Orchestra.jl      | class    | Majority Vote Ensemble.                          |
 | StackEnsemble         | Orchestra.jl      | class    | Stack Ensemble.                                  |
-| BestLearnerEnsemble   | Orchestra.jl      | class    | Selects best learner out of pool.                |
+| BestLearner           | Orchestra.jl      | class    | Selects best learner out of pool.                |
 
 
 ### Python
