@@ -3,7 +3,7 @@ module TestUtil
 using FactCheck
 using Fixtures
 
-using Orchestra.Util
+importall Orchestra.Util
 
 include("fixture_learners.jl")
 using .FixtureLearners
@@ -52,6 +52,76 @@ facts("Orchestra util functions", using_fixtures) do
   context("infer_eltype returns inferred elements type", using_fixtures) do
     vector = [1,2,3,"a"]
     @fact infer_eltype(vector[1:3]) => Int
+  end
+
+  context("nested_dict_to_list produces list of tuples", using_fixtures) do
+    nested_dict = {
+      :a => [1,2],
+      :b => {
+        :c => [3,4,5]
+      }
+    }
+    expected_list = {
+      ([:a], [1,2]),
+      ([:b,:c], [3,4,5])
+    }
+    list = nested_dict_to_list(nested_dict)
+
+    @fact list => expected_list
+  end
+
+  context("nested_dict_set! assigns values", using_fixtures) do
+    nested_dict = {
+      :a => 1,
+      :b => {
+        :c => 2
+      }
+    }
+    expected_dict = {
+      :a => 1,
+      :b => {
+        :c => 3
+      }
+    }
+    nested_dict_set!(nested_dict, [:b,:c], 3)
+
+    @fact nested_dict => expected_dict
+  end
+
+  context("nested_dict_merge merges two nested dictionaries", using_fixtures) do
+    first = {
+      :a => 1,
+      :b => {
+        :c => 2,
+        :d => 3
+      }
+    }
+    second = {
+      :a => 4,
+      :b => {
+        :d => 5
+      }
+    }
+    expected = {
+      :a => 4,
+      :b => {
+        :c => 2,
+        :d => 5
+      }
+    }
+    actual = nested_dict_merge(first, second)
+
+    @fact actual => expected
+  end
+
+  context("create_transformer produces new transformer", using_fixtures) do
+    learner = AlwaysSameLabelLearner({:label => :a})
+    new_options = {:label => :b}
+    new_learner = create_transformer(learner, new_options)
+
+    @fact learner.options[:label] => :a
+    @fact new_learner.options[:label] => :b
+    @fact true => !isequal(learner, new_learner)
   end
 end
 

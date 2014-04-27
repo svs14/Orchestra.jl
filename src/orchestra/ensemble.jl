@@ -2,8 +2,10 @@
 module EnsembleMethods
 
 importall Orchestra.Types
-import Orchestra.Util: holdout, kfold, score
+importall Orchestra.Util
+
 import Stats
+import Iterators: product
 import MLBase
 
 import Orchestra.Transformers.DecisionTreeWrapper: fit!, transform!
@@ -40,7 +42,7 @@ type VoteEnsemble <: Learner
       # Learners in voting committee.
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -96,7 +98,7 @@ type StackEnsemble <: Learner
       # Provide original features on top of learner outputs to stacker.
       :keep_original_features => false
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 
@@ -221,9 +223,14 @@ type BestLearner <: Learner
       # Score type returned by score() using respective output.
       :score_type => Real,
       # Candidate learners.
-      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+      # Options grid for learners, to search through by BestLearner.
+      # Format is [learner_1_options, learner_2_options, ...]
+      # where learner_options is same as a learner's options but
+      # with a list of values instead of scalar.
+      :learner_options_grid => nothing
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 
@@ -232,8 +239,43 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
   partition_generator = bls.options[:partition_generator]
   partitions = partition_generator(instances, labels)
   
+  # Obtain learners as is if no options grid present 
+  if bls.options[:learner_options_grid] == nothing
+    learners = bls.options[:learners]
+  # Generate learners if options grid present 
+  else
+    # Foreach prototype learner, generate learners with specific options
+    # found in grid.
+    learners = Transformer[]
+    for l_index in 1:length(bls.options[:learners])
+      # Obtain options grid
+      options_prototype = bls.options[:learner_options_grid][l_index]
+      grid_list = nested_dict_to_list(options_prototype)
+      grid_keys = map(x -> x[1], grid_list)
+      grid_values = map(x -> x[2], grid_list)
+
+      # Foreach combination of options
+      # generate learner.
+      for combination in product(grid_values...)
+        # Assign values for each option
+        learner_options = deepcopy(options_prototype)
+        for g_index in 1:length(grid_list)
+          keys = grid_keys[g_index]
+          value = combination[g_index]
+          nested_dict_set!(learner_options, keys, value)
+        end
+
+        # Generate learner
+        learner_prototype = bls.options[:learners][l_index]
+        learner = create_transformer(learner_prototype, learner_options)
+
+        # Append to candidate learners
+        push!(learners, learner)
+      end
+    end
+  end
+
   # Train each learner on each partition and obtain validation output
-  learners = bls.options[:learners]
   num_partitions = size(partitions, 1)
   num_learners = size(learners, 1)
   num_instances = size(instances, 1)

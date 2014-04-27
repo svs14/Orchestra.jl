@@ -2,6 +2,7 @@
 module BaselineMethods
 
 importall Orchestra.Types
+importall Orchestra.Util
 import Stats: mode
 
 export Baseline,
@@ -31,7 +32,7 @@ type Baseline <: Learner
       # Function that takes a label vector and returns the required output.
       :strategy => mode
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -51,7 +52,7 @@ type Identity <: Transformer
 
   function Identity(options=Dict())
     default_options = Dict{Symbol, Any}()
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 

@@ -2,7 +2,7 @@
 module CaretWrapper
 
 importall Orchestra.Types
-import Orchestra.Util: infer_eltype
+importall Orchestra.Util
 
 using PyCall
 @pyimport rpy2.robjects as RO
@@ -74,7 +74,7 @@ type CRTLearner <: Learner
       :learner => "svmLinear",
       :impl_options => {}
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 

@@ -4,7 +4,7 @@ module TestSystem
 using Orchestra.Types
 using Orchestra.System
 using Orchestra.Transformers
-using Orchestra.Util
+importall Orchestra.Util
 
 include("fixture_learners.jl")
 using .FixtureLearners

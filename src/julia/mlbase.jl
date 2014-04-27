@@ -2,6 +2,8 @@
 module MLBaseWrapper
 
 importall Orchestra.Types
+importall Orchestra.Util
+
 import MLBase: Standardize, estimate, transform
 
 export StandardScaler,
@@ -26,7 +28,7 @@ type StandardScaler <: Transformer
       :center => true,
       :scale => true
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 

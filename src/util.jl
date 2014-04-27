@@ -1,13 +1,18 @@
 # Various functions that work with learners.
 module Util
 
+importall Orchestra.Types
 import MLBase: Kfold
 using Match
 
 export holdout,
        kfold,
        score,
-       infer_eltype
+       infer_eltype,
+       nested_dict_to_list,
+       nested_dict_set!,
+       nested_dict_merge,
+       create_transformer
 
 # Holdout method that partitions a collection
 # into two partitions.
@@ -71,6 +76,80 @@ function infer_eltype(vector::Vector)
 
   # Return inferred element type
   return vec_eltype
+end
+
+# Converts nested dictionary to list of tuples
+#
+# @param dict Dictionary that can have other dictionaries as values.
+# @return List where elements are ([outer-key, inner-key, ...], value).
+function nested_dict_to_list(dict::Dict)
+  list = Any[]
+  for (entry_id, entry_val) in dict
+    if typeof(entry_val) <: Dict
+      inner_list = nested_dict_to_list(entry_val)
+      for (inner_entry_id, inner_entry_val) in inner_list
+        new_entry = (vcat([entry_id], inner_entry_id), inner_entry_val)
+        push!(list, new_entry)
+      end
+    else
+      new_entry = ([entry_id], entry_val)
+      push!(list, new_entry)
+    end
+  end
+  return list
+end
+
+# Set value in a nested dictionary.
+#
+# @param dict Nested dictionary to assign value.
+# @param keys Keys to access nested dictionaries in sequence.
+# @param value Value to assign.
+function nested_dict_set!{T}(dict::Dict, keys::Array{T, 1}, value)
+  inner_dict = dict
+  for key in keys[1:end-1]
+    inner_dict = inner_dict[key]
+  end
+  inner_dict[keys[end]] = value
+end
+
+# Second nested dictionary is merged into first.
+# 
+# If a second dictionary's value as well as the first
+# are both dictionaries, then a merge is conducted between
+# the two inner dictionaries. 
+# Otherwise the second's value overrides the first.
+#
+# @param first First nested dictionary.
+# @param second Second nested dictionary.
+# @return Merged nested dictionary.
+function nested_dict_merge(first::Dict, second::Dict)
+  target = copy(first)
+  for (second_key, second_value) in second
+    values_both_dict = 
+      typeof(second_value) <: Dict && 
+      typeof(get(target, second_key, nothing)) <: Dict
+    if values_both_dict
+      target[second_key] = merge(target[second_key], second_value)
+    else
+      target[second_key] = second_value
+    end
+  end
+  return target
+end
+
+# Create transformer
+# 
+# @param prototype Prototype transformer to base new transformer on.
+# @param options Additional options to override prototype's options.
+# @return New transformer.
+function create_transformer(prototype::Transformer, options=nothing)
+  new_options = copy(prototype.options)
+  if options != nothing
+    new_options = nested_dict_merge(new_options, options)
+  end
+
+  prototype_type = typeof(prototype)
+  return prototype_type(new_options)
 end
 
 end # module

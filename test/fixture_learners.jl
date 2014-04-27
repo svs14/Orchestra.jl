@@ -1,6 +1,7 @@
 module FixtureLearners
 
 importall Orchestra.Types
+importall Orchestra.Util
 
 export MLProblem,
        Classification,
@@ -98,7 +99,7 @@ type PerfectScoreLearner <: TestLearner
       :output => :class,
       :problem => NumericFeatureClassification()
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -140,7 +141,7 @@ type AlwaysSameLabelLearner <: TestLearner
       :output => :class,
       :label => nothing
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 

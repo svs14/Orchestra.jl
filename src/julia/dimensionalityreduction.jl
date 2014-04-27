@@ -2,6 +2,7 @@
 module DimensionalityReductionWrapper
 
 importall Orchestra.Types
+importall Orchestra.Util
 import DimensionalityReduction: pca
 
 export PCA,
@@ -29,7 +30,7 @@ type PCA <: Transformer
       :center => true,
       :scale => true
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 

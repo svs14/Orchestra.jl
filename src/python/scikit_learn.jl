@@ -2,6 +2,8 @@
 module ScikitLearnWrapper
 
 importall Orchestra.Types
+importall Orchestra.Util
+
 using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM
@@ -67,7 +69,7 @@ type SKLLearner <: Learner
       # Options specific to this implementation.
       :impl_options => Dict(),
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 

@@ -2,6 +2,8 @@
 module DecisionTreeWrapper
 
 importall Orchestra.Types
+importall Orchestra.Util
+
 import DecisionTree
 DT = DecisionTree
 
@@ -40,7 +42,7 @@ type PrunedTree <: Learner
         :purity_threshold => 1.0
       },
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -90,7 +92,7 @@ type RandomForest <: Learner
         :partial_sampling => 0.7
       },
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -145,7 +147,7 @@ type DecisionStumpAdaboost <: Learner
         :num_iterations => 7
       },
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 

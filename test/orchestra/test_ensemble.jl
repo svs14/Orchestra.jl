@@ -8,6 +8,10 @@ using FactCheck
 using Fixtures
 
 importall Orchestra.Transformers.EnsembleMethods
+import Orchestra.Transformers.DecisionTreeWrapper: fit!, transform!
+import Orchestra.Transformers.DecisionTreeWrapper: PrunedTree
+import Orchestra.Transformers.DecisionTreeWrapper: RandomForest
+import Orchestra.Transformers.DecisionTreeWrapper: DecisionStumpAdaboost
 
 facts("Ensemble learners", using_fixtures) do
   context("VoteEnsemble predicts according to majority", using_fixtures) do
@@ -59,6 +63,29 @@ facts("Ensemble learners", using_fixtures) do
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
 
     @fact learner.model[:best_learner_index] => 2
+  end
+
+  context("BestLearner conducts grid search", using_fixtures) do
+    learner = BestLearner({
+      :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+      :learner_options_grid => [
+        {
+          :impl_options => {
+            :purity_threshold => [0.5, 1.0]
+          }
+        },
+        Dict(),
+        {
+          :impl_options => {
+            :num_trees => [5, 10, 20], 
+            :partial_sampling => [0.5, 0.7]
+          }
+        }
+      ]
+    })
+    fit!(learner, nfcp.train_instances, nfcp.train_labels)
+
+    @fact length(learner.model[:learners]) => 8
   end
 end
 

@@ -2,7 +2,7 @@
 module OrchestraTransformers
 
 importall Orchestra.Types
-import Orchestra.Util: infer_eltype
+importall Orchestra.Util
 
 export OneHotEncoder,
        Imputer,
@@ -35,7 +35,7 @@ type OneHotEncoder <: Transformer
       # possible values for that column.
       :nominal_column_values_map => nothing
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -135,7 +135,7 @@ type Imputer <: Transformer
       # Statistic that takes a vector such as mean or median.
       :strategy => mean
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -185,7 +185,7 @@ type Pipeline <: Transformer
       # Transformer options as list applied to same index transformer.
       :transformer_options => nothing
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
@@ -196,17 +196,16 @@ function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
   transformer_options = pipe.options[:transformer_options]
 
   current_instances = instances
+  new_transformers = Transformer[]
   for t_index in 1:length(transformers)
-    transformer = transformers[t_index]
-    if transformer_options != nothing
-      merge!(transformer.options, transformer_options[t_index])
-    end
+    transformer = create_transformer(transformers[t_index], transformer_options)
+    push!(new_transformers, transformer)
     fit!(transformer, current_instances, labels)
     current_instances = transform!(transformer, current_instances)
   end
 
   pipe.model = {
-      :transformers => transformers,
+      :transformers => new_transformers,
       :transformer_options => transformer_options
   }
 end
@@ -245,18 +244,20 @@ type Wrapper <: Transformer
       # Transformer options.
       :transformer_options => nothing
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
-# NOTE(svs14): Method is only idempotent if the same transformer_options
-#              are overriden at each subsequent fit! call.
 function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
-  transformer = wrapper.options[:transformer]
   transformer_options = wrapper.options[:transformer_options]
+  transformer = create_transformer(
+    wrapper.options[:transformer],
+    transformer_options
+  )
 
   if transformer_options != nothing
-    merge!(transformer.options, transformer_options)
+    transformer_options = 
+      nested_dict_merge(transformer.options, transformer_options)
   end
   fit!(transformer, instances, labels)
 
