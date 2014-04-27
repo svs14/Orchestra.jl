@@ -49,7 +49,7 @@ learner = RandomForest()
 ### Which is best? Machine decides
 
 ```julia
-learner = BestLearnerEnsemble({
+learner = BestLearner({
   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
 })
 ```
@@ -103,7 +103,7 @@ learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 |-----------------------|-------------------|----------|--------------------------------------------------|
 | VoteEnsemble          | Orchestra.jl      | class    | Majority Vote Ensemble.                          |
 | StackEnsemble         | Orchestra.jl      | class    | Stack Ensemble.                                  |
-| BestLearnerEnsemble   | Orchestra.jl      | class    | Selects best learner out of pool.                |
+| BestLearner           | Orchestra.jl      | class    | Selects best learner out of pool.                |
 
 
 ### Python
