@@ -129,7 +129,7 @@ function nested_dict_merge(first::Dict, second::Dict)
       typeof(second_value) <: Dict && 
       typeof(get(target, second_key, nothing)) <: Dict
     if values_both_dict
-      target[second_key] = merge(target[second_key], second_value)
+      target[second_key] = nested_dict_merge(target[second_key], second_value)
     else
       target[second_key] = second_value
     end

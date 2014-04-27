@@ -9,7 +9,7 @@ export MLProblem,
        NumericFeatureClassification,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
-       train_and_transform!,
+       fit_and_transform!,
        fit!,
        transform!
        
@@ -84,10 +84,10 @@ type NumericFeatureClassification <: Classification
 end
 
 
-function train_and_transform!(learner::Learner, problem::MLProblem, seed=1)
+function fit_and_transform!(transformer::Transformer, problem::MLProblem, seed=1)
     srand(seed)
-    fit!(learner, problem.train_instances, problem.train_labels)
-    return transform!(learner, problem.test_instances)
+    fit!(transformer, problem.train_instances, problem.train_labels)
+    return transform!(transformer, problem.test_instances)
 end
 
 type PerfectScoreLearner <: TestLearner

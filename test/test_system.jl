@@ -9,6 +9,7 @@ importall Orchestra.Util
 include("fixture_learners.jl")
 using .FixtureLearners
 nfcp = NumericFeatureClassification()
+fcp = FeatureClassification()
 
 function all_concrete_subtypes(a_type::Type)
   a_subtypes = Type[]
@@ -32,10 +33,9 @@ using Fixtures
 
 facts("Orchestra system", using_fixtures) do
   context("All learners train and predict on fixture data.", using_fixtures) do
-
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      train_and_transform!(learner, nfcp)
+      fit_and_transform!(learner, nfcp)
     end
 
     @fact 1 => 1
@@ -73,7 +73,20 @@ facts("Orchestra system", using_fixtures) do
       push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})
-    predictions = train_and_transform!(ensemble, nfcp)
+    predictions = fit_and_transform!(ensemble, nfcp)
+
+    @fact 1 => 1
+  end
+
+  context("Pipeline works with fixture data.", using_fixtures) do
+    transformers = [
+      OneHotEncoder(),
+      Imputer(),
+      StandardScaler(),
+      BestLearner()
+    ]
+    pipeline = Pipeline({:transformers => transformers})
+    predictions = fit_and_transform!(pipeline, fcp)
 
     @fact 1 => 1
   end

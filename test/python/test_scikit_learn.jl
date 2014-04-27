@@ -13,12 +13,12 @@ using PyCall
 @pyimport sklearn.neighbors as NN
 @pyimport random as RAN
 
-function skl_train_and_transform!(learner::Learner, problem::MLProblem, seed=1)
+function skl_fit_and_transform!(learner::Learner, problem::MLProblem, seed=1)
   RAN.seed(seed)
-  return train_and_transform!(learner, problem, seed)
+  return fit_and_transform!(learner, problem, seed)
 end
 
-function backend_train_and_transform!(sk_learner, seed=1)
+function backend_fit_and_transform!(sk_learner, seed=1)
   RAN.seed(seed)
   srand(seed)
   sk_learner[:fit](nfcp.train_instances, nfcp.train_labels)
@@ -27,10 +27,10 @@ end
 
 function behavior_check(learner::Learner, sk_learner)
   # Predict with Orchestra learner
-  orchestra_predictions = skl_train_and_transform!(learner, nfcp)
+  orchestra_predictions = skl_fit_and_transform!(learner, nfcp)
 
   # Predict with original backend learner
-  original_predictions = backend_train_and_transform!(sk_learner)
+  original_predictions = backend_fit_and_transform!(sk_learner)
 
   # Verify same predictions
   @fact orchestra_predictions => original_predictions
