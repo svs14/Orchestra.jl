@@ -8,7 +8,6 @@ export OneHotEncoder,
        Imputer,
        Pipeline,
        Wrapper,
-       Identity,
        fit!,
        transform!
 
@@ -270,26 +269,6 @@ end
 function transform!(wrapper::Wrapper, instances::Matrix)
   transformer = wrapper.model[:transformer]
   return transform!(transformer, instances)
-end
-
-
-# Identity transformer passes the instances as is.
-type Identity <: Transformer
-  model
-  options
-
-  function Identity(options=Dict())
-    default_options = Dict{Symbol, Any}()
-    new(nothing, merge(default_options, options))
-  end
-end
-
-function fit!(id::Identity, instances::Matrix, labels::Vector)
-  nothing
-end
-
-function transform!(id::Identity, instances::Matrix)
-  return instances
 end
 
 end # module

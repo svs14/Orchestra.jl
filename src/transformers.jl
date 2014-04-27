@@ -8,6 +8,7 @@ export Transformer,
        Pipeline,
        Wrapper,
        Identity,
+       Baseline,
        PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
@@ -28,6 +29,8 @@ import Orchestra.System: HAS_SKL, HAS_CRT
 importall Orchestra.Types
 
 # Include atomic Orchestra transformers
+include(joinpath("orchestra", "baseline.jl"))
+importall .BaselineMethods
 include(joinpath("orchestra", "transformers.jl"))
 importall .OrchestraTransformers
 
