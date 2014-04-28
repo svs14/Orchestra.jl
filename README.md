@@ -109,42 +109,259 @@ result = score(:accuracy, test_labels, predictions)
 
 ## Available Transformers
 
-### Julia
-
-| Learner               | Library           | Outputs  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| PrunedTree            | DecisionTree.jl   | class    | C4.5 Decision Tree.                              |
-| RandomForest          | DecisionTree.jl   | class    | C4.5 Random Forest.                              |
-| DecisionStumpAdaboost | DecisionTree.jl   | class    | C4.5 Adaboosted Decision Stumps.                 |
-
+Outlined are all the transformers currently available via Orchestra.
 
 ### Orchestra
 
-| Learner               | Library           | Outputs  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| VoteEnsemble          | Orchestra.jl      | class    | Majority Vote Ensemble.                          |
-| StackEnsemble         | Orchestra.jl      | class    | Stack Ensemble.                                  |
-| BestLearner           | Orchestra.jl      | class    | Selects best learner out of pool.                |
+#### Baseline (Orchestra.jl Learner)
 
-
-### Python
-
-Most classifiers are available from scikit-learn.
-
-Orchestra accessible learners are listed [here](src/learners/python/scikit_learn.jl).
-See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
-
+Baseline learner that by default assigns the most frequent label.
 ```julia
-# Example usage for using scikit-learn.
-learner = SKLLearner({
-  :learner => "RandomForestClassifier", 
-  :impl_options => {:max_depth => 3}
+learner = Baseline({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Label assignment strategy.
+  # Function that takes a label vector and returns the required output.
+  :strategy => mode
 })
 ```
 
-| Learner               | Library           | Outputs  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| SKLLearner            | scikit-learn 0.14 | class    | Wrapper to most scikit-learn machine learners.   |
+#### Identity (Orchestra.jl Transformer)
+
+Identity transformer passes the instances as is.
+```julia
+transformer = Identity()
+```
+
+#### VoteEnsemble (Orchestra.jl Learner)
+
+Set of machine learners that majority vote to decide prediction.
+```julia
+learner = VoteEnsemble({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Learners in voting committee.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
+```
+
+#### StackEnsemble (Orchestra.jl Learner)
+
+Ensemble where a 'stack' learner learns on a set of learners' predictions.
+```julia
+learner = StackEnsemble({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Set of learners that produce feature space for stacker.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+  # Machine learner that trains on set of learners' outputs.
+  :stacker => RandomForest(),
+  # Proportion of training set left to train stacker itself.
+  :stacker_training_proportion => 0.3,
+  # Provide original features on top of learner outputs to stacker.
+  :keep_original_features => false
+})
+```
+
+#### BestLearner (Orchestra.jl Learner)
+
+Selects best learner out of set. 
+Will perform a grid search on learners if options grid is provided.
+```julia
+learner = BestLearner({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Function to return partitions of instance indices.
+  :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
+  # Function that selects the best learner by index.
+  # Arg learner_partition_scores is a (learner, partition) score matrix.
+  :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
+  # Score type returned by score() using respective output.
+  :score_type => Real,
+  # Candidate learners.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+  # Options grid for learners, to search through by BestLearner.
+  # Format is [learner_1_options, learner_2_options, ...]
+  # where learner_options is same as a learner's options but
+  # with a list of values instead of scalar.
+  :learner_options_grid => nothing
+})
+```
+
+#### OneHotEncoder (Orchestra.jl Transformer)
+
+Transforms instances with nominal features into one-hot form 
+and coerces the instance matrix to be of element type Float64.
+```julia
+transformer = OneHotEncoder({
+  # Nominal columns
+  :nominal_columns => nothing,
+  # Nominal column values map. Key is column index, value is list of
+  # possible values for that column.
+  :nominal_column_values_map => nothing
+})
+```
+
+#### Imputer (Orchestra.jl Transformer)
+
+Imputes NaN values from Float64 features.
+```julia
+transformer = Imputer({
+  # Imputation strategy.
+  # Statistic that takes a vector such as mean or median.
+  :strategy => mean
+})
+```
+
+#### Pipeline (Orchestra.jl Transformer)
+
+Chains multiple transformers in sequence.
+```julia
+transformer = Pipeline({
+  # Transformers as list to chain in sequence.
+  :transformers => [OneHotEncoder(), Imputer()],
+  # Transformer options as list applied to same index transformer.
+  :transformer_options => nothing
+})
+```
+
+#### Wrapper (Orchestra.jl Transformer)
+
+Wraps around an Orchestra transformer.
+```julia
+transformer = Wrapper({
+  # Transformer to call.
+  :transformer => OneHotEncoder(),
+  # Transformer options.
+  :transformer_options => nothing
+})
+```
+
+
+### Julia
+
+#### PrunedTree (DecisionTree.jl Learner)
+
+Pruned ID3 decision tree.
+```julia
+learner = PrunedTree({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Merge leaves having >= purity_threshold combined purity.
+    :purity_threshold => 1.0
+  }
+})
+```
+
+#### RandomForest (DecisionTree.jl Learner)
+
+Random forest (C4.5).
+```julia
+learner = RandomForest({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Number of features to train on with trees.
+    :num_subfeatures => nothing,
+    # Number of trees in forest.
+    :num_trees => 10,
+    # Proportion of trainingset to be used for trees.
+    :partial_sampling => 0.7
+  }
+})
+```
+
+#### DecisionStumpAdaboost (DecisionTree.jl Learner)
+
+Adaboosted C4.5 decision stumps.
+```julia
+learner = DecisionStumpAdaboost({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Number of boosting iterations.
+    :num_iterations => 7
+  }
+})
+```
+
+#### PCA (DimensionalityReduction.jl Transformer)
+
+Principal Component Analysis rotation
+on features.
+Features ordered by maximal variance descending.
+
+Fails if zero-variance feature exists.
+```julia
+transformer = PCA({
+  :center => true,
+  :scale => true
+})
+```
+
+#### StandardScaler (MLBase.jl Transformer)
+
+Standardizes each feature using (X - mean) / stddev.
+Will produce NaN if standard deviation is zero.
+```julia
+transformer = StandardScaler({
+  :center => true,
+  :scale => true
+})
+```
+
+### Python
+
+Orchestra accessible learners for scikit-learn are listed [here](src/learners/python/scikit_learn.jl).
+
+See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
+
+#### SKLLearner (scikit-learn 0.14 Learner)
+
+Wrapper for scikit-learn that provides access to most learners.
+
+Options for the specific scikit-learn learner is to be passed
+in options[:impl_options] dictionary.
+
+Available learners:
+
+  - "RandomForestClassifier"
+  - "ExtraTreesClassifier"
+  - "GradientBoostingClassifier"
+  - "LogisticRegression"
+  - "PassiveAggressiveClassifier"
+  - "RidgeClassifier"
+  - "RidgeClassifierCV"
+  - "SGDClassifier"
+  - "KNeighborsClassifier"
+  - "RadiusNeighborsClassifier"
+  - "NearestCentroid"
+  - "SVC"
+  - "LinearSVC"
+  - "NuSVC"
+  - "DecisionTreeClassifier"
+
+```julia
+learner = SKLLearner({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  :learner => "LinearSVC",
+  # Options specific to this implementation.
+  :impl_options => Dict()
+})
+```
 
 
 ### R
@@ -154,36 +371,45 @@ Python library 'rpy2' is required to interface with R.
 R library 'caret' offers more than 100 learners. 
 See [here](http://caret.r-forge.r-project.org/modelList.html) for more details.
 
+#### CRTLearner (caret 6.0 Learner)
+
+CARET wrapper that provides access to all learners.
+
+Options for the specific CARET learner is to be passed
+in options[:impl_options] dictionary.
 ```julia
-# Example usage for using CARET.
 learner = CRTLearner({
-  :learner => "svmLinear", 
-  :impl_options => {:C => 5.0}
+  # Output to train against
+  # (:class).
+  :output => :class,
+  :learner => "svmLinear",
+  :impl_options => {}
 })
 ```
 
-| Learner               | Library           | Outputs  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| CRTLearner            | caret 6.0         | class    | Wrapper to all CARET machine learners.           |
 
 ## Known Limitations
 
 Learners have only been tested on instances with numeric features. 
 
-Inconsistencies may result in using nominal features directly without a numeric transformation (i.e. one-hot coding).
+Inconsistencies may result in using nominal features directly without a numeric transformation (i.e. OneHotEncoder).
 
-## Changes
+## Misc
+
+The links provided below will only work if you are viewing this in the GitHub repository.
+
+### Changes
 
 See [CHANGELOG.yml](CHANGELOG.yml).
 
-## Future Work
+### Future Work
 
 See [FUTUREWORK.md](FUTUREWORK.md).
 
-## Contributing 
+### Contributing 
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+### License
 
 MIT "Expat" License. See [LICENSE.md](LICENSE.md).
