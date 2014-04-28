@@ -1,9 +1,9 @@
 # Wrapper to CARET library.
 module CaretWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
+importall Orchestra.Util
 
-using MLBase
 using PyCall
 @pyimport rpy2.robjects as RO
 @pyimport rpy2.robjects.packages as RP
@@ -11,28 +11,26 @@ using PyCall
 N2R.activate()
 RP.importr("caret")
 
-export CRTWrapper,
-       train!,
-       predict!
+export CRTLearner,
+       fit!,
+       transform!
 
 # Convert vector to R equivalent.
 vector_to_r{T<:Int}(vector::Vector{T}) = RO.IntVector(vector)
 vector_to_r{T<:Real}(vector::Vector{T}) = RO.FloatVector(vector)
 vector_to_r{T<:Bool}(vector::Vector{T}) = RO.BoolVector(vector)
-vector_to_r{T<:String}(vector::Vector{T}) = RO.StringVector(vector)
+vector_to_r{T<:String}(vector::Vector{T}) = RO.StrVector(vector)
 function vector_to_r(vector::Vector{Any})
   # Return most general type available if empty
   if isempty(vector) 
     return vector_to_r(convert(Vector{String}, vector))
   end
-  # Fail if differing element types in vector
-  all_elements_same_type = all(x -> typeof(x) == typeof(first(vector)), vector)
-  if !all_elements_same_type
+  vec_eltype = infer_eltype(vector)
+  if vec_eltype == Any
     error("Cannot handle R conversion for vector with differing element types.")
   end
-  # Convert vector to more specific type
-  element_type = typeof(first(vector))
-  return vector_to_r(convert(Vector{element_type}, vector))
+
+  return vector_to_r(convert(Vector{vec_eltype}, vector))
 end
 vector_to_r(vector::Vector) = error(
   "Cannot handle R conversion for $(typeof(vector))."
@@ -63,24 +61,24 @@ end
 # CARET wrapper that provides access to all learners.
 # 
 # Options for the specific CARET learner is to be passed
-# in options[:impl_options] dictionary.
-type CRTWrapper <: Learner
+# in `options[:impl_options]` dictionary.
+type CRTLearner <: Learner
   model
   options
   
-  function CRTWrapper(options=Dict())
+  function CRTLearner(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       :learner => "svmLinear",
       :impl_options => {}
     }
-    new(nothing, merge(default_options, options)) 
+    new(nothing, nested_dict_merge(default_options, options)) 
   end
 end
 
-function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
+function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   impl_options = crtw.options[:impl_options]
   crtw.model = Dict()
   crtw.model[:learner] = crtw.options[:learner]
@@ -116,7 +114,7 @@ function train!(crtw::CRTWrapper, instances::Matrix, labels::Vector)
   crtw.model[:r_model] = r_model
 end
 
-function predict!(crtw::CRTWrapper, instances::Matrix)
+function transform!(crtw::CRTLearner, instances::Matrix)
   (r_instance_df, _) = dataset_to_r_dataframe(instances)
   predictions = collect(pycall(RO.r[:predict], PyObject,
     crtw.model[:r_model],

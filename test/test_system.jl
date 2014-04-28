@@ -1,14 +1,15 @@
 # System tests.
 module TestSystem
 
-using Orchestra.AbstractLearner
+using Orchestra.Types
 using Orchestra.System
-using Orchestra.Learners
-using Orchestra.Util
+using Orchestra.Transformers
+importall Orchestra.Util
 
-include(joinpath("learners", "fixture_learners.jl"))
-import .FixtureLearners
-FL = FixtureLearners
+include("fixture_learners.jl")
+using .FixtureLearners
+nfcp = NumericFeatureClassification()
+fcp = FeatureClassification()
 
 function all_concrete_subtypes(a_type::Type)
   a_subtypes = Type[]
@@ -32,10 +33,9 @@ using Fixtures
 
 facts("Orchestra system", using_fixtures) do
   context("All learners train and predict on fixture data.", using_fixtures) do
-
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      FL.train_and_predict!(learner)
+      fit_and_transform!(learner, nfcp)
     end
 
     @fact 1 => 1
@@ -55,8 +55,8 @@ facts("Orchestra system", using_fixtures) do
     # Test all learners
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      train!(learner, train_instances, train_labels)
-      predict!(learner, test_instances)
+      fit!(learner, train_instances, train_labels)
+      transform!(learner, test_instances)
     end
 
     @fact 1 => 1
@@ -67,13 +67,26 @@ facts("Orchestra system", using_fixtures) do
     push!(learners, RandomForest())
     push!(learners, StackEnsemble())
     if HAS_SKL
-      push!(learners, SKLSVC())
+      push!(learners, SKLLearner())
     end
     if HAS_CRT
-      push!(learners, CRTWrapper())
+      push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})
-    predictions = FL.train_and_predict!(ensemble)
+    predictions = fit_and_transform!(ensemble, nfcp)
+
+    @fact 1 => 1
+  end
+
+  context("Pipeline works with fixture data.", using_fixtures) do
+    transformers = [
+      OneHotEncoder(),
+      Imputer(),
+      StandardScaler(),
+      BestLearner()
+    ]
+    pipeline = Pipeline({:transformers => transformers})
+    predictions = fit_and_transform!(pipeline, fcp)
 
     @fact 1 => 1
   end

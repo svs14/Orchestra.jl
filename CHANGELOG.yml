@@ -1,6 +1,18 @@
 %YAML 1.2
 ---
 changes:
+  v0.0.4:
+    - Fix for string vector conversion in R.
+    - Rename of BestLearnerSelection to BestLearner.
+    - Refactored score function.
+    - Rename of SKL and CRT Wrapper to SKL and CRT Learner.
+    - Rename predict! to transform! and train! to fit!.
+    - Introduced Transformer supertype to Learner.
+    - Created OneHotEncoder, Imputer, Pipeline, Wrapper, Identity, Baseline.
+    - MLBase.jl, DimensionalityReduction.jl integrated.
+    - BestLearner now capable of grid-search.
+    - Nested merge used instead of merge for options.
+    - Updated documentation.
   v0.0.3:
     - Integrated R's caret machine learners.
   v0.0.2:

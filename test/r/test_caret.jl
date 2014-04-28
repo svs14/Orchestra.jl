@@ -2,13 +2,14 @@ module TestCaretWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
+nfcp = NumericFeatureClassification()
 
 using FactCheck
 using Fixtures
 
 using MLBase
-importall Orchestra.AbstractLearner
-importall Orchestra.Learners.CaretWrapper
+importall Orchestra.Types
+importall Orchestra.Transformers.CaretWrapper
 CW = CaretWrapper
 using PyCall
 @pyimport rpy2.robjects as RO
@@ -21,17 +22,17 @@ function behavior_check(caret_learner::String, impl_options=Dict())
   # Predict with Orchestra learner
   srand(1)
   pycall(RO.r["set.seed"], PyObject, 1)
-  learner = CRTWrapper({
+  learner = CRTLearner({
     :learner => caret_learner, 
     :impl_options => impl_options
   })
-  orchestra_predictions = train_and_predict!(learner)
+  orchestra_predictions = fit_and_transform!(learner, nfcp)
 
   # Predict with backend learner
   srand(1)
   pycall(RO.r["set.seed"], PyObject, 1)
   (r_dataset_df, label_factors) = CW.dataset_to_r_dataframe(
-    train_instances, train_labels
+    nfcp.train_instances, nfcp.train_labels
   )
   label_factors = collect(label_factors)
   caret_formula = RO.Formula("Y ~ .")
@@ -55,7 +56,7 @@ function behavior_check(caret_learner::String, impl_options=Dict())
       tuneGrid = RO.DataFrame(impl_options)
     )
   end
-  (r_instance_df, _) = CW.dataset_to_r_dataframe(test_instances)
+  (r_instance_df, _) = CW.dataset_to_r_dataframe(nfcp.test_instances)
   original_predictions = collect(pycall(RO.r[:predict], PyObject,
     r_model,
     newdata = r_instance_df
@@ -67,13 +68,13 @@ function behavior_check(caret_learner::String, impl_options=Dict())
 end
 
 facts("CARET learners", using_fixtures) do
-  context("CRTWrapper gives same results as its backend", using_fixtures) do
+  context("CRTLearner gives same results as its backend", using_fixtures) do
     caret_learners = ["svmLinear", "nnet", "earth"]
     for caret_learner in caret_learners
       behavior_check(caret_learner)
     end
   end
-  context("CRTWrapper with options gives same results as its backend", using_fixtures) do
+  context("CRTLearner with options gives same results as its backend", using_fixtures) do
     behavior_check("svmLinear", {:C => 5.0})
   end
 end

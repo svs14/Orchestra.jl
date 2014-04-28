@@ -3,8 +3,8 @@ module Orchestra
 
 # Load source files
 include("system.jl")
-include("abstractlearner.jl")
+include("types.jl")
 include("util.jl")
-include(joinpath("learners", "learners.jl"))
+include("transformers.jl")
 
 end # module

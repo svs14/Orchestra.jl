@@ -1,85 +1,57 @@
 # Decision trees as found in DecisionTree Julia package.
 module DecisionTreeWrapper
 
-importall Orchestra.AbstractLearner
+importall Orchestra.Types
+importall Orchestra.Util
+
 import DecisionTree
 DT = DecisionTree
 
 export PrunedTree, 
        RandomForest,
        DecisionStumpAdaboost,
-       train!, 
-       predict!
+       fit!, 
+       transform!
 
 # Pruned ID3 decision tree.
-# 
-# <pre>
-# default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Merge leaves having >= purity_threshold combined purity.
-#     :purity_threshold => 1.0
-#   },
-# }
-# </pre>
 type PrunedTree <: Learner
   model
   options
   
   function PrunedTree(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Merge leaves having >= purity_threshold combined purity.
         :purity_threshold => 1.0
-      },
+      }
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
-function train!(tree::PrunedTree, instances::Matrix, labels::Vector)
+function fit!(tree::PrunedTree, instances::Matrix, labels::Vector)
   impl_options = tree.options[:impl_options]
   tree.model = DT.build_tree(labels, instances)
   tree.model = DT.prune_tree(tree.model, impl_options[:purity_threshold])
 end
-function predict!(tree::PrunedTree, instances::Matrix)
+function transform!(tree::PrunedTree, instances::Matrix)
   return DT.apply_tree(tree.model, instances)
 end
 
 # Random forest (C4.5).
-#
-# <pre>
-# default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Number of features to train on with trees.
-#     :num_subfeatures => nothing,
-#     # Number of trees in forest.
-#     :num_trees => 10,
-#     # Proportion of trainingset to be used for trees.
-#     :partial_sampling => 0.7
-#   },
-# }
-# </pre>
 type RandomForest <: Learner
   model
   options
   
   function RandomForest(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Number of features to train on with trees.
@@ -88,13 +60,13 @@ type RandomForest <: Learner
         :num_trees => 10,
         # Proportion of trainingset to be used for trees.
         :partial_sampling => 0.7
-      },
+      }
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
-function train!(forest::RandomForest, instances::Matrix, labels::Vector)
+function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
   # Set training-dependent options
   impl_options = forest.options[:impl_options]
   if impl_options[:num_subfeatures] == nothing
@@ -112,44 +84,31 @@ function train!(forest::RandomForest, instances::Matrix, labels::Vector)
   )
 end
 
-function predict!(forest::RandomForest, instances::Matrix)
+function transform!(forest::RandomForest, instances::Matrix)
   return DT.apply_forest(forest.model, instances)
 end
 
 # Adaboosted C4.5 decision stumps.
-# 
-# <pre>
-# default_options = {
-#   # Metric to train against
-#   # (:accuracy).
-#   :metric => :accuracy,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Number of boosting iterations.
-#     :num_iterations => 7
-#   },
-# }
-# </pre>
 type DecisionStumpAdaboost <: Learner
   model
   options
   
   function DecisionStumpAdaboost(options=Dict())
     default_options = {
-      # Metric to train against
-      # (:accuracy).
-      :metric => :accuracy,
+      # Output to train against
+      # (:class).
+      :output => :class,
       # Options specific to this implementation.
       :impl_options => {
         # Number of boosting iterations.
         :num_iterations => 7
-      },
+      }
     }
-    new(nothing, merge(default_options, options))
+    new(nothing, nested_dict_merge(default_options, options))
   end
 end
 
-function train!(adaboost::DecisionStumpAdaboost, 
+function fit!(adaboost::DecisionStumpAdaboost, 
   instances::Matrix, labels::Vector)
 
   # NOTE(svs14): Variable 'model' renamed to 'ensemble'.
@@ -165,7 +124,7 @@ function train!(adaboost::DecisionStumpAdaboost,
   }
 end
 
-function predict!(adaboost::DecisionStumpAdaboost, instances::Matrix)
+function transform!(adaboost::DecisionStumpAdaboost, instances::Matrix)
   return DT.apply_adaboost_stumps(
     adaboost.model[:ensemble], adaboost.model[:coefficients], instances
   )

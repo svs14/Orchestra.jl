@@ -6,18 +6,27 @@ Orchestra is a heterogeneous ensemble learning package for the Julia programming
 language. It is driven by a uniform machine learner API designed for learner
 composition.
 
-## Tutorial
+## Getting Started
 
-### Get the Data
+We will cover how to predict on a dataset using Orchestra.
+
+### Obtain Data
+
+A tabular dataset will be used to obtain our instances and labels. 
+
+This will be split it into a training and test set using holdout method.
 
 ```julia
 import RDatasets
 using Orchestra.Util
-using Orchestra.Learners
+using Orchestra.Transformers
 
+# Obtain instances and labels
 dataset = RDatasets.dataset("datasets", "iris")
 instances = array(dataset[:, 1:(end-1)])
 labels = array(dataset[:, end])
+
+# Split into training and test sets
 (train_ind, test_ind) = holdout(size(instances, 1), 0.3)
 train_instances = instances[train_ind, :]
 test_instances = instances[test_ind, :]
@@ -25,106 +34,334 @@ train_labels = labels[train_ind]
 test_labels = labels[test_ind]
 ```
 
-### Try a Learner
+### Create a Learner
+
+A transformer processes instances in some form. Coincidentally, a learner is a subtype of transformer.
+
+A transformer can be created by instantiating it, taking an options dictionary as an optional argument. 
+
+All transformers, including learners are called in the same way.
 
 ```julia
+# Learner with default settings
 learner = PrunedTree()
-train!(learner, train_instances, train_labels)
-predictions = predict!(learner, test_instances)
-result = score(learner, test_instances, test_labels, predictions)
-```
 
-### Try another Learner
-
-```julia
-learner = DecisionStumpAdaboost()
-```
-
-### ... More
-
-```julia
-learner = RandomForest()
-```
-
-### Which is best? Machine decides
-
-```julia
-learner = BestLearnerSelection({
-  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+# Learner with some of the default settings overriden
+learner = PrunedTree({
+  :impl_options => {
+    :purity_threshold => 0.5
+  }
 })
-```
 
-### Why even choose? Majority rules
-
-```julia
-learner = VoteEnsemble({
-  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
-})
-```
-
-### A Learner on a Learner? We have to go Deeper
-
-```julia
+# All learners are called in the same way.
 learner = StackEnsemble({
-    :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()], 
-    :stacker => DecisionStumpAdaboost()
+  :learners => [
+    PrunedTree(), 
+    RandomForest(),
+    DecisionStumpAdaboost()
+  ], 
+  :stacker => RandomForest()
 })
 ```
 
-### Ensemble of Ensembles of Ensembles
+### Create a Pipeline
+
+Normally we may require the use of data pre-processing before the instances are passed to the learner.
+
+We shall use a pipeline transformer to chain many transformers in sequence.
+
+In this case we shall one hot encode categorical features, impute NA values and numerically standardize before we call the learner.
 
 ```julia
-ensemble_1 = RandomForest()
-ensemble_2 = StackEnsemble({
-  :learners => [PrunedTree(), DecisionStumpAdaboost()], 
-  :stacker => DecisionStumpAdaboost()
+# Create pipeline
+pipeline = Pipeline({
+  :transformers => [
+    OneHotEncoder(), # Encodes nominal features into numeric
+    Imputer(), # Imputes NA values
+    StandardScaler(), # Standardizes features 
+    learner # Predicts labels on instances
+  ]
 })
-ensemble_3 = VoteEnsemble({:learners => [ensemble_1, ensemble_2]})
-ensemble_4 = VoteEnsemble()
-learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
 ```
 
-### Woah!
+### Train and Predict
 
-## Available Learners
+Training is done via the `fit!` function, predicton via `transform!`. 
 
-### Julia
+All transformers, provide these two functions. They are always called the same way.
 
-| Learner               | Library           | Metrics  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| PrunedTree            | DecisionTree.jl   | accuracy | C4.5 Decision Tree.                              |
-| RandomForest          | DecisionTree.jl   | accuracy | C4.5 Random Forest.                              |
-| DecisionStumpAdaboost | DecisionTree.jl   | accuracy | C4.5 Adaboosted Decision Stumps.                 |
+```julia
+# Train
+fit!(pipeline, train_instances, train_labels)
 
+# Predict
+predictions = transform!(pipeline, test_instances)
+```
+
+### Assess
+
+Finally we assess how well our learner performed.
+
+```julia
+# Assess predictions
+result = score(:accuracy, test_labels, predictions)
+```
+
+## Available Transformers
+
+Outlined are all the transformers currently available via Orchestra.
 
 ### Orchestra
 
-| Learner               | Library           | Metrics  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| VoteEnsemble          | Orchestra.jl      | accuracy | Majority Vote Ensemble.                          |
-| StackEnsemble         | Orchestra.jl      | accuracy | Stack Ensemble.                                  |
-| BestLearnerSelection  | Orchestra.jl      | accuracy | Selects best learner out of pool.                |
+#### Baseline (Orchestra.jl Learner)
 
+Baseline learner that by default assigns the most frequent label.
+```julia
+learner = Baseline({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Label assignment strategy.
+  # Function that takes a label vector and returns the required output.
+  :strategy => mode
+})
+```
+
+#### Identity (Orchestra.jl Transformer)
+
+Identity transformer passes the instances as is.
+```julia
+transformer = Identity()
+```
+
+#### VoteEnsemble (Orchestra.jl Learner)
+
+Set of machine learners that majority vote to decide prediction.
+```julia
+learner = VoteEnsemble({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Learners in voting committee.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
+})
+```
+
+#### StackEnsemble (Orchestra.jl Learner)
+
+Ensemble where a 'stack' learner learns on a set of learners' predictions.
+```julia
+learner = StackEnsemble({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Set of learners that produce feature space for stacker.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+  # Machine learner that trains on set of learners' outputs.
+  :stacker => RandomForest(),
+  # Proportion of training set left to train stacker itself.
+  :stacker_training_proportion => 0.3,
+  # Provide original features on top of learner outputs to stacker.
+  :keep_original_features => false
+})
+```
+
+#### BestLearner (Orchestra.jl Learner)
+
+Selects best learner out of set. 
+Will perform a grid search on learners if options grid is provided.
+```julia
+learner = BestLearner({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Function to return partitions of instance indices.
+  :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
+  # Function that selects the best learner by index.
+  # Arg learner_partition_scores is a (learner, partition) score matrix.
+  :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
+  # Score type returned by score() using respective output.
+  :score_type => Real,
+  # Candidate learners.
+  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
+  # Options grid for learners, to search through by BestLearner.
+  # Format is [learner_1_options, learner_2_options, ...]
+  # where learner_options is same as a learner's options but
+  # with a list of values instead of scalar.
+  :learner_options_grid => nothing
+})
+```
+
+#### OneHotEncoder (Orchestra.jl Transformer)
+
+Transforms instances with nominal features into one-hot form 
+and coerces the instance matrix to be of element type Float64.
+```julia
+transformer = OneHotEncoder({
+  # Nominal columns
+  :nominal_columns => nothing,
+  # Nominal column values map. Key is column index, value is list of
+  # possible values for that column.
+  :nominal_column_values_map => nothing
+})
+```
+
+#### Imputer (Orchestra.jl Transformer)
+
+Imputes NaN values from Float64 features.
+```julia
+transformer = Imputer({
+  # Imputation strategy.
+  # Statistic that takes a vector such as mean or median.
+  :strategy => mean
+})
+```
+
+#### Pipeline (Orchestra.jl Transformer)
+
+Chains multiple transformers in sequence.
+```julia
+transformer = Pipeline({
+  # Transformers as list to chain in sequence.
+  :transformers => [OneHotEncoder(), Imputer()],
+  # Transformer options as list applied to same index transformer.
+  :transformer_options => nothing
+})
+```
+
+#### Wrapper (Orchestra.jl Transformer)
+
+Wraps around an Orchestra transformer.
+```julia
+transformer = Wrapper({
+  # Transformer to call.
+  :transformer => OneHotEncoder(),
+  # Transformer options.
+  :transformer_options => nothing
+})
+```
+
+
+### Julia
+
+#### PrunedTree (DecisionTree.jl Learner)
+
+Pruned ID3 decision tree.
+```julia
+learner = PrunedTree({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Merge leaves having >= purity_threshold combined purity.
+    :purity_threshold => 1.0
+  }
+})
+```
+
+#### RandomForest (DecisionTree.jl Learner)
+
+Random forest (C4.5).
+```julia
+learner = RandomForest({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Number of features to train on with trees.
+    :num_subfeatures => nothing,
+    # Number of trees in forest.
+    :num_trees => 10,
+    # Proportion of trainingset to be used for trees.
+    :partial_sampling => 0.7
+  }
+})
+```
+
+#### DecisionStumpAdaboost (DecisionTree.jl Learner)
+
+Adaboosted C4.5 decision stumps.
+```julia
+learner = DecisionStumpAdaboost({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  # Options specific to this implementation.
+  :impl_options => {
+    # Number of boosting iterations.
+    :num_iterations => 7
+  }
+})
+```
+
+#### PCA (DimensionalityReduction.jl Transformer)
+
+Principal Component Analysis rotation
+on features.
+Features ordered by maximal variance descending.
+
+Fails if zero-variance feature exists.
+```julia
+transformer = PCA({
+  :center => true,
+  :scale => true
+})
+```
+
+#### StandardScaler (MLBase.jl Transformer)
+
+Standardizes each feature using (X - mean) / stddev.
+Will produce NaN if standard deviation is zero.
+```julia
+transformer = StandardScaler({
+  :center => true,
+  :scale => true
+})
+```
 
 ### Python
 
-| Learner               | Library           | Metrics  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| SKLRandomForest       | scikit-learn 0.14 | accuracy | Random Forest.                                   |
-| SKLExtraTrees         | scikit-learn 0.14 | accuracy | Extra-trees.                                     |
-| SKLGradientBoosting   | scikit-learn 0.14 | accuracy | Gradient Boosting Machine.                       |
-| SKLLogisticRegression | scikit-learn 0.14 | accuracy | Logistic Regression.                             |
-| SKLPassiveAggressive  | scikit-learn 0.14 | accuracy | Passive Aggressive.                              |
-| SKLRidge              | scikit-learn 0.14 | accuracy | Ridge classifier.                                |
-| SKLRidgeCV            | scikit-learn 0.14 | accuracy | Ridge classifier with in-built Cross Validation. |
-| SKLSGD                | scikit-learn 0.14 | accuracy | Linear classifiers with SGD training.            |
-| SKLKNeighbors         | scikit-learn 0.14 | accuracy | K Nearest Neighbors                              |
-| SKLRadiusNeighbors    | scikit-learn 0.14 | accuracy | Within Radius Neighbors Vote.                    |
-| SKLNearestCentroid    | scikit-learn 0.14 | accuracy | Nearest Centroid.                                |
-| SKLSVC                | scikit-learn 0.14 | accuracy | C-Support Vector Classifier.                     |
-| SKLLinearSVC          | scikit-learn 0.14 | accuracy | Linear Support Vector Classifier.                |
-| SKLNuSVC              | scikit-learn 0.14 | accuracy | Nu-Support Vector Classifier.                    |
-| SKLDecisionTree       | scikit-learn 0.14 | accuracy | Decision Tree.                                   |
+Orchestra accessible learners for scikit-learn are listed [here](src/learners/python/scikit_learn.jl).
+
+See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
+
+#### SKLLearner (scikit-learn 0.14 Learner)
+
+Wrapper for scikit-learn that provides access to most learners.
+
+Options for the specific scikit-learn learner is to be passed
+in options[:impl_options] dictionary.
+
+Available learners:
+
+  - "RandomForestClassifier"
+  - "ExtraTreesClassifier"
+  - "GradientBoostingClassifier"
+  - "LogisticRegression"
+  - "PassiveAggressiveClassifier"
+  - "RidgeClassifier"
+  - "RidgeClassifierCV"
+  - "SGDClassifier"
+  - "KNeighborsClassifier"
+  - "RadiusNeighborsClassifier"
+  - "NearestCentroid"
+  - "SVC"
+  - "LinearSVC"
+  - "NuSVC"
+  - "DecisionTreeClassifier"
+
+```julia
+learner = SKLLearner({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  :learner => "LinearSVC",
+  # Options specific to this implementation.
+  :impl_options => Dict()
+})
+```
 
 
 ### R
@@ -134,36 +371,45 @@ Python library 'rpy2' is required to interface with R.
 R library 'caret' offers more than 100 learners. 
 See [here](http://caret.r-forge.r-project.org/modelList.html) for more details.
 
+#### CRTLearner (caret 6.0 Learner)
+
+CARET wrapper that provides access to all learners.
+
+Options for the specific CARET learner is to be passed
+in options[:impl_options] dictionary.
 ```julia
-# Example usage for using CARET.
-learner = CRTWrapper({
-  :learner => "svmLinear", 
-  :impl_options => {:C => 5.0}
+learner = CRTLearner({
+  # Output to train against
+  # (:class).
+  :output => :class,
+  :learner => "svmLinear",
+  :impl_options => {}
 })
 ```
 
-| Learner               | Library           | Metrics  | Description                                      |
-|-----------------------|-------------------|----------|--------------------------------------------------|
-| CRTWrapper            | caret 6.0         | accuracy | Wrapper to all CARET machine learners.           |
 
 ## Known Limitations
 
 Learners have only been tested on instances with numeric features. 
 
-Inconsistencies may result in using nominal features directly without a numeric transformation (i.e. one-hot coding).
+Inconsistencies may result in using nominal features directly without a numeric transformation (i.e. OneHotEncoder).
 
-## Changes
+## Misc
+
+The links provided below will only work if you are viewing this in the GitHub repository.
+
+### Changes
 
 See [CHANGELOG.yml](CHANGELOG.yml).
 
-## Future Work
+### Future Work
 
 See [FUTUREWORK.md](FUTUREWORK.md).
 
-## Contributing 
+### Contributing 
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## License
+### License
 
 MIT "Expat" License. See [LICENSE.md](LICENSE.md).

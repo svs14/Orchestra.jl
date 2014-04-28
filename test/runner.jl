@@ -3,18 +3,19 @@ module TestRunner
   using FactCheck
   using Orchestra.System
 
-  include("test_abstractlearner.jl")
   include("test_util.jl")
-  include(joinpath("learners", "julia", "test_decisiontree.jl"))
-  include(joinpath("learners", "orchestra", "test_ensemble.jl"))
-  include(joinpath("learners", "orchestra", "test_selection.jl"))
+  include(joinpath("orchestra", "test_transformers.jl"))
+  include(joinpath("julia", "test_decisiontree.jl"))
+  include(joinpath("julia", "test_mlbase.jl"))
+  include(joinpath("julia", "test_dimensionalityreduction.jl"))
+  include(joinpath("orchestra", "test_ensemble.jl"))
   if HAS_SKL
-    include(joinpath("learners", "python", "test_scikit_learn.jl"))
+    include(joinpath("python", "test_scikit_learn.jl"))
   else
     info("Skipping scikit-learn tests.")
   end
   if HAS_CRT
-    include(joinpath("learners", "r", "test_caret.jl"))
+    include(joinpath("r", "test_caret.jl"))
   else
     info("Skipping CARET tests.")
   end
