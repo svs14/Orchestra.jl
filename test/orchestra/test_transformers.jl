@@ -45,6 +45,13 @@ facts("Orchestra transformers", using_fixtures) do
 
     @fact size(transformed, 2) => 13
   end
+  context("OneHotEncoder handles no nominal features", using_fixtures) do
+    encoder = OneHotEncoder()
+    fit!(encoder, nfcp.train_instances, nfcp.train_labels)
+    transformed = transform!(encoder, nfcp.test_instances)
+
+    @fact size(transformed, 2) => 2
+  end
 
   context("Imputer replaces NA", using_fixtures) do
     instances = [

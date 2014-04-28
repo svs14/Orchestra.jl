@@ -12,7 +12,7 @@ export OneHotEncoder,
        transform!
 
 # Transforms instances with nominal features into one-hot form 
-# and coerces the instance matrix to be of element type FloatingPoint.
+# and coerces the instance matrix to be of element type Float64.
 type OneHotEncoder <: Transformer
   model
   options
@@ -56,12 +56,13 @@ function transform!(ohe::OneHotEncoder, instances::Matrix)
   nominal_columns = ohe.model[:nominal_columns]
   nominal_column_values_map = ohe.model[:nominal_column_values_map]
 
-  # Create new transformed instance matrix of type FloatingPoint
+  # Create new transformed instance matrix of type Float64
   num_rows = size(instances, 1)
-  num_columns = 
-    (size(instances, 2) - length(nominal_columns)) + 
-    sum(map(x -> length(x), values(nominal_column_values_map)))
-  transformed_instances = zeros(FloatingPoint, num_rows, num_columns)
+  num_columns = (size(instances, 2) - length(nominal_columns)) 
+  if !isempty(nominal_column_values_map)
+    num_columns += sum(map(x -> length(x), values(nominal_column_values_map)))
+  end
+  transformed_instances = zeros(Float64, num_rows, num_columns)
 
   # Fill transformed instance matrix
   col_start_index = 1
@@ -106,7 +107,7 @@ function find_nominal_columns(instances::Matrix)
 end
 
 
-# Imputes NaN values from FloatingPoint features.
+# Imputes NaN values from Float64 features.
 type Imputer <: Transformer
   model
   options
