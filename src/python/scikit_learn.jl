@@ -37,9 +37,10 @@ learner_dict = {
 # Wrapper for scikit-learn that provides access to most learners.
 # 
 # Options for the specific scikit-learn learner is to be passed
-# in options[:impl_options] dictionary.
+# in `options[:impl_options]` dictionary.
 # 
 # Available learners:
+#
 #   - "RandomForestClassifier"
 #   - "ExtraTreesClassifier"
 #   - "GradientBoostingClassifier"
@@ -67,7 +68,7 @@ type SKLLearner <: Learner
       :output => :class,
       :learner => "LinearSVC",
       # Options specific to this implementation.
-      :impl_options => Dict(),
+      :impl_options => Dict()
     }
     new(nothing, nested_dict_merge(default_options, options)) 
   end

@@ -27,7 +27,7 @@ type PrunedTree <: Learner
       :impl_options => {
         # Merge leaves having >= purity_threshold combined purity.
         :purity_threshold => 1.0
-      },
+      }
     }
     new(nothing, nested_dict_merge(default_options, options))
   end
@@ -60,7 +60,7 @@ type RandomForest <: Learner
         :num_trees => 10,
         # Proportion of trainingset to be used for trees.
         :partial_sampling => 0.7
-      },
+      }
     }
     new(nothing, nested_dict_merge(default_options, options))
   end
@@ -102,7 +102,7 @@ type DecisionStumpAdaboost <: Learner
       :impl_options => {
         # Number of boosting iterations.
         :num_iterations => 7
-      },
+      }
     }
     new(nothing, nested_dict_merge(default_options, options))
   end

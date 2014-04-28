@@ -10,7 +10,7 @@ export Baseline,
        fit!,
        transform!
 
-# Baseline learner.
+# Baseline learner that by default assigns the most frequent label.
 type Baseline <: Learner
   model
   options

@@ -162,7 +162,8 @@ function build_stacker_instances{T<:Learner}(
   return stacker_instances
 end
 
-# Selects best learner out of set.
+# Selects best learner out of set. 
+# Will perform a grid search on learners if options grid is provided.
 type BestLearner <: Learner
   model
   options

@@ -61,7 +61,7 @@ end
 # CARET wrapper that provides access to all learners.
 # 
 # Options for the specific CARET learner is to be passed
-# in options[:impl_options] dictionary.
+# in `options[:impl_options]` dictionary.
 type CRTLearner <: Learner
   model
   options
