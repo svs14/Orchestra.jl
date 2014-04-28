@@ -6,18 +6,27 @@ Orchestra is a heterogeneous ensemble learning package for the Julia programming
 language. It is driven by a uniform machine learner API designed for learner
 composition.
 
-## Tutorial
+## Getting Started
 
-### Get the Data
+We will cover how to predict on a dataset using Orchestra.
+
+### Obtain Data
+
+A tabular dataset will be used to obtain our instances and labels. 
+
+This will be split it into a training and test set using holdout method.
 
 ```julia
 import RDatasets
 using Orchestra.Util
 using Orchestra.Transformers
 
+# Obtain instances and labels
 dataset = RDatasets.dataset("datasets", "iris")
 instances = array(dataset[:, 1:(end-1)])
 labels = array(dataset[:, end])
+
+# Split into training and test sets
 (train_ind, test_ind) = holdout(size(instances, 1), 0.3)
 train_instances = instances[train_ind, :]
 test_instances = instances[test_ind, :]
@@ -25,68 +34,80 @@ train_labels = labels[train_ind]
 test_labels = labels[test_ind]
 ```
 
-### Try a Learner
+### Create a Learner
+
+A transformer processes instances in some form. Coincidentally, a learner is a subtype of transformer.
+
+A transformer can be created by instantiating it, taking an options dictionary as an optional argument. 
+
+All transformers, including learners are called in the same way.
 
 ```julia
+# Learner with default settings
 learner = PrunedTree()
-fit!(learner, train_instances, train_labels)
-predictions = transform!(learner, test_instances)
+
+# Learner with some of the default settings overriden
+learner = PrunedTree({
+  :impl_options => {
+    :purity_threshold => 0.5
+  }
+})
+
+# All learners are called in the same way.
+learner = StackEnsemble({
+  :learners => [
+    PrunedTree(), 
+    RandomForest(),
+    DecisionStumpAdaboost()
+  ], 
+  :stacker => RandomForest()
+})
+```
+
+### Create a Pipeline
+
+Normally we may require the use of data pre-processing before the instances are passed to the learner.
+
+We shall use a pipeline transformer to chain many transformers in sequence.
+
+In this case we shall one hot encode categorical features, impute NA values and numerically standardize before we call the learner.
+
+```julia
+# Create pipeline
+pipeline = Pipeline({
+  :transformers => [
+    OneHotEncoder(), # Encodes nominal features into numeric
+    Imputer(), # Imputes NA values
+    StandardScaler(), # Standardizes features 
+    learner # Predicts labels on instances
+  ]
+})
+```
+
+### Train and Predict
+
+Training is done via the `fit!` function, predicton via `transform!`. 
+
+All transformers, provide these two functions. They are always called the same way.
+
+```julia
+# Train
+fit!(pipeline, train_instances, train_labels)
+
+# Predict
+predictions = transform!(pipeline, test_instances)
+```
+
+### Assess
+
+Finally we assess how well our learner performed.
+
+```julia
+# Assess predictions
 result = score(:accuracy, test_labels, predictions)
 ```
 
-### Try another Learner
-
-```julia
-learner = DecisionStumpAdaboost()
-```
-
-### ... More
-
-```julia
-learner = RandomForest()
-```
-
-### Which is best? Machine decides
-
-```julia
-learner = BestLearner({
-  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
-})
-```
-
-### Why even choose? Majority rules
-
-```julia
-learner = VoteEnsemble({
-  :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
-})
-```
-
-### A Learner on a Learner? We have to go Deeper
-
-```julia
-learner = StackEnsemble({
-    :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()], 
-    :stacker => DecisionStumpAdaboost()
-})
-```
-
-### Ensemble of Ensembles of Ensembles
-
-```julia
-ensemble_1 = RandomForest()
-ensemble_2 = StackEnsemble({
-  :learners => [PrunedTree(), DecisionStumpAdaboost()], 
-  :stacker => DecisionStumpAdaboost()
-})
-ensemble_3 = VoteEnsemble({:learners => [ensemble_1, ensemble_2]})
-ensemble_4 = VoteEnsemble()
-learner = VoteEnsemble({:learners => [ensemble_3, ensemble_4]})
-```
-
-### Woah!
-
-## Available Learners
+## Available Transformers
 
 ### Julia
 
