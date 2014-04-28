@@ -11,14 +11,6 @@ export Baseline,
        transform!
 
 # Baseline learner.
-#
-# <pre>
-# default_options = {
-#   # Label assignment strategy.
-#   # Function that takes a label vector and returns the required output.
-#   :strategy => mode
-# }
-# </pre>
 type Baseline <: Learner
   model
   options

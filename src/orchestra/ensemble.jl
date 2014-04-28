@@ -20,16 +20,6 @@ export VoteEnsemble,
        transform!
 
 # Set of machine learners that majority vote to decide prediction.
-#
-# <pre>
-# default_options = {
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Learners in voting committee.
-#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
-# }
-# </pre>
 type VoteEnsemble <: Learner
   model
   options
@@ -64,22 +54,6 @@ function transform!(ve::VoteEnsemble, instances::Matrix)
 end
 
 # Ensemble where a 'stack' learner learns on a set of learners' predictions.
-#
-# <pre>
-# default_options = {    
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Set of learners that produce feature space for stacker.
-#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
-#   # Machine learner that trains on set of learners' outputs.
-#   :stacker => RandomForest(),
-#   # Proportion of training set left to train stacker itself.
-#   :stacker_training_proportion => 0.3,
-#   # Provide original features on top of learner outputs to stacker.
-#   :keep_original_features => false
-# }
-# </pre>
 type StackEnsemble <: Learner
   model
   options
@@ -189,23 +163,6 @@ function build_stacker_instances{T<:Learner}(
 end
 
 # Selects best learner out of set.
-# 
-# <pre>
-# default_options = {
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Function to return partitions of instance indices.
-#   :partition_generator => (instances, labels) -> kfold(size(instances, 1), 5),
-#   # Function that selects the best learner by index.
-#   # Arg learner_partition_scores is a (learner, partition) score matrix.
-#   :selection_function => (learner_partition_scores) -> findmax(mean(learner_partition_scores, 2))[2],      
-#   # Score type returned by score() using respective output.
-#   :score_type => Real
-#   # Candidate learners.
-#   :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
-# }
-# </pre>
 type BestLearner <: Learner
   model
   options

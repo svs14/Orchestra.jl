@@ -12,13 +12,6 @@ export StandardScaler,
 
 # Standardizes each feature using (X - mean) / stddev.
 # Will produce NaN if standard deviation is zero.
-#
-# <pre>
-# default_options = {
-#   :center => true,
-#   :scale => true
-# }
-# </pre>
 type StandardScaler <: Transformer
   model
   options

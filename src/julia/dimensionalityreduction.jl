@@ -14,13 +14,6 @@ export PCA,
 # Features ordered by maximal variance descending.
 #
 # Fails if zero-variance feature exists.
-#
-# <pre>
-# default_options = {
-#   :center => true,
-#   :scale => true
-# }
-# </pre>
 type PCA <: Transformer
   model
   options

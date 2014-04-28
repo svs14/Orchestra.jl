@@ -14,19 +14,6 @@ export PrunedTree,
        transform!
 
 # Pruned ID3 decision tree.
-# 
-# <pre>
-# default_options = {
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Merge leaves having >= purity_threshold combined purity.
-#     :purity_threshold => 1.0
-#   },
-# }
-# </pre>
 type PrunedTree <: Learner
   model
   options
@@ -56,23 +43,6 @@ function transform!(tree::PrunedTree, instances::Matrix)
 end
 
 # Random forest (C4.5).
-#
-# <pre>
-# default_options = {
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Number of features to train on with trees.
-#     :num_subfeatures => nothing,
-#     # Number of trees in forest.
-#     :num_trees => 10,
-#     # Proportion of trainingset to be used for trees.
-#     :partial_sampling => 0.7
-#   },
-# }
-# </pre>
 type RandomForest <: Learner
   model
   options
@@ -119,19 +89,6 @@ function transform!(forest::RandomForest, instances::Matrix)
 end
 
 # Adaboosted C4.5 decision stumps.
-# 
-# <pre>
-# default_options = {
-#   # Output to train against
-#   # (:class).
-#   :output => :class,
-#   # Options specific to this implementation.
-#   :impl_options => {
-#     # Number of boosting iterations.
-#     :num_iterations => 7
-#   },
-# }
-# </pre>
 type DecisionStumpAdaboost <: Learner
   model
   options

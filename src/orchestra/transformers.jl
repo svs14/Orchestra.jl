@@ -13,16 +13,6 @@ export OneHotEncoder,
 
 # Transforms instances with nominal features into one-hot form 
 # and coerces the instance matrix to be of element type FloatingPoint.
-#
-# <pre>
-# default_options = {
-#   # Nominal columns
-#   :nominal_columns => nothing,
-#   # Nominal column values map. Key is column index, value is list of
-#   # possible values for that column.
-#   :nominal_column_values_map => nothing
-# }
-# </pre>
 type OneHotEncoder <: Transformer
   model
   options
@@ -117,14 +107,6 @@ end
 
 
 # Imputes NaN values from FloatingPoint features.
-#
-# <pre>
-# default_options = {
-#   # Imputation strategy.
-#   # Statistic that takes a vector such as mean or median.
-#   :strategy => mean
-# }
-# </pre>
 type Imputer <: Transformer
   model
   options
@@ -165,15 +147,6 @@ end
 
 
 # Chains multiple transformers in sequence.
-#
-# <pre>
-# default_options = {
-#   # Transformers to chain in sequence.
-#   :transformers => [OneHotEncoder(), Imputer(), StandardScaler()],
-#   # Transformer options applied to same index transformer.
-#   :transformer_options => []
-# }
-# </pre>
 type Pipeline <: Transformer
   model
   options
@@ -189,8 +162,6 @@ type Pipeline <: Transformer
   end
 end
 
-# NOTE(svs14): Method is only idempotent if the same transformer_options
-#              are overriden at each subsequent fit! call.
 function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
   transformers = pipe.options[:transformers]
   transformer_options = pipe.options[:transformer_options]
@@ -224,15 +195,6 @@ end
 
 
 # Wraps around an Orchestra transformer.
-#
-# <pre>
-# default_options = {
-#   # Transformer to call.
-#   :transformer => OneHotEncoder(),
-#   # Transformer options.
-#   :transformer_options => nothing
-# }
-# </pre>
 type Wrapper <: Transformer
   model
   options
