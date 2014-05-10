@@ -305,7 +305,9 @@ Features ordered by maximal variance descending.
 Fails if zero-variance feature exists.
 ```julia
 transformer = PCA({
+  # Center features
   :center => true,
+  # Scale features
   :scale => true
 })
 ```
@@ -316,14 +318,14 @@ Standardizes each feature using (X - mean) / stddev.
 Will produce NaN if standard deviation is zero.
 ```julia
 transformer = StandardScaler({
+  # Center features
   :center => true,
+  # Scale features
   :scale => true
 })
 ```
 
 ### Python
-
-Orchestra accessible learners for scikit-learn are listed [here](src/learners/python/scikit_learn.jl).
 
 See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
 
@@ -332,7 +334,7 @@ See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) 
 Wrapper for scikit-learn that provides access to most learners.
 
 Options for the specific scikit-learn learner is to be passed
-in options[:impl_options] dictionary.
+in `options[:impl_options]` dictionary.
 
 Available learners:
 
@@ -376,14 +378,14 @@ See [here](http://caret.r-forge.r-project.org/modelList.html) for more details.
 CARET wrapper that provides access to all learners.
 
 Options for the specific CARET learner is to be passed
-in options[:impl_options] dictionary.
+in `options[:impl_options]` dictionary.
 ```julia
 learner = CRTLearner({
   # Output to train against
   # (:class).
   :output => :class,
   :learner => "svmLinear",
-  :impl_options => {}
+  :impl_options => Dict()
 })
 ```
 

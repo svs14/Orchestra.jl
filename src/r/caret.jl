@@ -72,7 +72,7 @@ type CRTLearner <: Learner
       # (:class).
       :output => :class,
       :learner => "svmLinear",
-      :impl_options => {}
+      :impl_options => Dict()
     }
     new(nothing, nested_dict_merge(default_options, options)) 
   end
