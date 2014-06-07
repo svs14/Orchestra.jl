@@ -67,7 +67,7 @@ facts("Orchestra util functions", using_fixtures) do
     }
     list = nested_dict_to_list(nested_dict)
 
-    @fact list => expected_list
+    @fact Set(list) => Set(expected_list)
   end
 
   context("nested_dict_set! assigns values", using_fixtures) do
