@@ -13,7 +13,41 @@ export PrunedTree,
        fit!, 
        transform!
 
+# Converts labels into strings if numeric labels used
+# in classification, otherwise returns as is.
+function label_convert(target_output, labels)
+  label_conversion_required = false
+  label_type = eltype(labels)
+  if target_output == :class && label_type <: Real
+    label_conversion_required = true
+    labels = map(x -> string(x), labels)
+  end
+  if target_output == :regression && !issubtype(label_type, FloatingPoint)
+    label_conversion_required = true
+    labels = convert(Vector{Float64}, labels)
+  end
+  return (label_conversion_required, labels)
+end
+
+# Conversion of instances occurs when Matrix{Any} is really Matrix{Real}
+# when under regression.
+# Fails if output is regression and matrix is not Real typed.
+function instance_convert(target_output, instances)
+  instance_conversion_required = false
+  if !issubtype(eltype(instances), Real) && target_output == :regression
+    instances = promote(instances)[1]
+    if eltype(instances) <: Real
+      instance_conversion_required = true
+    else
+      error("DecisionTree only supports numeric features for regression")
+    end
+  end
+  return instance_conversion_required, instances
+end
+
 # Pruned ID3 decision tree.
+#
+# Only support numeric features when using regression.
 type PrunedTree <: Learner
   model
   options
@@ -21,7 +55,7 @@ type PrunedTree <: Learner
   function PrunedTree(options=Dict())
     default_options = {
       # Target output.
-      # (:class).
+      # (:class, :regression).
       :output => :class,
       # Options specific to this implementation.
       :impl_options => {
@@ -34,15 +68,50 @@ type PrunedTree <: Learner
 end
 
 function fit!(tree::PrunedTree, instances::Matrix, labels::Vector)
+  # Workaround of DT API when numeric labels are used in classification, and
+  # regression with numeric labels (Real, not FloatingPoint)
+  label_conversion_required, labels = 
+    label_convert(tree.options[:output], labels)
+
+  # Conversion when instance is Matrix{Any} but is really Matrix{Real}
+  instance_conversion_required, instances = 
+    instance_convert(tree.options[:output], instances)
+
+  tree.model = Dict()
+  tree.model[:output] = tree.options[:output]
+  tree.model[:instance_conversion_required] = instance_conversion_required
+  tree.model[:label_conversion_required] = label_conversion_required
+
+  # Train
   impl_options = tree.options[:impl_options]
-  tree.model = DT.build_tree(labels, instances)
-  tree.model = DT.prune_tree(tree.model, impl_options[:purity_threshold])
+  tree.model[:model] = DT.build_tree(labels, instances)
+  tree.model[:model] = 
+    DT.prune_tree(tree.model[:model], impl_options[:purity_threshold])
+
+  tree.model
 end
+
 function transform!(tree::PrunedTree, instances::Matrix)
-  return DT.apply_tree(tree.model, instances)
+  if tree.model[:output] == :regression &&
+    tree.model[:instance_conversion_required]
+
+    instances = promote(instances)[1]
+  end
+  predictions = DT.apply_tree(tree.model[:model], instances)
+
+  if tree.model[:output] == :class && 
+    tree.model[:label_conversion_required]
+    
+    predictions = map(x -> float(x), predictions)
+    predictions = [promote(predictions...)...]
+  end
+
+  return predictions
 end
 
 # Random forest (C4.5).
+#
+# Only support numeric features when using regression.
 type RandomForest <: Learner
   model
   options
@@ -50,7 +119,7 @@ type RandomForest <: Learner
   function RandomForest(options=Dict())
     default_options = {
       # Target output.
-      # (:class).
+      # (:class, :regression).
       :output => :class,
       # Options specific to this implementation.
       :impl_options => {
@@ -67,6 +136,20 @@ type RandomForest <: Learner
 end
 
 function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
+  # Workaround of DT API when numeric labels are used in classification, and
+  # regression with numeric labels (Real, not FloatingPoint)
+  label_conversion_required, labels = 
+    label_convert(forest.options[:output], labels)
+
+  # Conversion when instance is Matrix{Any} but is really Matrix{Real}
+  instance_conversion_required, instances = 
+    instance_convert(forest.options[:output], instances)
+
+  forest.model = Dict()
+  forest.model[:output] = forest.options[:output]
+  forest.model[:instance_conversion_required] = instance_conversion_required
+  forest.model[:label_conversion_required] = label_conversion_required
+
   # Set training-dependent options
   impl_options = forest.options[:impl_options]
   if impl_options[:num_subfeatures] == nothing
@@ -75,7 +158,7 @@ function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
     num_subfeatures = impl_options[:num_subfeatures]
   end
   # Build model
-  forest.model = DT.build_forest(
+  forest.model[:model] = DT.build_forest(
     labels, 
     instances,
     num_subfeatures, 
@@ -85,7 +168,22 @@ function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
 end
 
 function transform!(forest::RandomForest, instances::Matrix)
-  return DT.apply_forest(forest.model, instances)
+  if forest.model[:output] == :regression &&
+    forest.model[:instance_conversion_required]
+
+    instances = promote(instances)[1]
+  end
+
+  predictions = DT.apply_forest(forest.model[:model], instances)
+
+  if forest.model[:output] == :class && 
+    forest.model[:label_conversion_required]
+    
+    predictions = map(x -> float(x), predictions)
+    predictions = [promote(predictions...)...]
+  end
+
+  return predictions
 end
 
 # Adaboosted C4.5 decision stumps.

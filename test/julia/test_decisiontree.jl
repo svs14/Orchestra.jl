@@ -3,6 +3,8 @@ module TestDecisionTreeWrapper
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
 nfcp = NumericFeatureClassification()
+nfrp = NumericFeatureRegression()
+frp = FeatureRegression()
 
 using FactCheck
 using Fixtures
@@ -65,6 +67,56 @@ facts("DecisionTree learners", using_fixtures) do
     # Verify same predictions
     @fact orchestra_predictions => original_predictions
   end
+
+  context("Trees handles regression", using_fixtures) do
+    learners = [
+      PrunedTree({:output => :regression}),
+      RandomForest({:output => :regression}),
+    ]
+    for learner in learners
+      predictions = fit_and_transform!(learner, nfrp)
+
+      @fact eltype(predictions) <: FloatingPoint => true
+      @fact !all(x -> in(x, nfrp.train_labels), predictions) => true
+    end
+  end
+
+  context("Trees handles Real labels in regression", using_fixtures) do
+    learners = [
+      PrunedTree({:output => :regression}),
+      RandomForest({:output => :regression}),
+    ]
+    for learner in learners
+      train_labels = convert(Vector{Real}, nfrp.train_labels)
+      fit!(learner, nfrp.train_instances, train_labels)
+      predictions = transform!(learner, nfrp.test_instances)
+      @fact eltype(predictions) <: FloatingPoint => true
+    end
+  end
+
+  context("Trees fails on non-numeric features in regression", using_fixtures) do
+    learners = [
+      PrunedTree({:output => :regression}),
+      RandomForest({:output => :regression}),
+    ]
+    for learner in learners
+      @fact_throws fit_and_transform!(learner, frp)
+    end
+  end
+
+  context("Trees handles numeric label classification", using_fixtures) do
+    learners = [
+      PrunedTree(),
+      RandomForest(),
+    ]
+    for learner in learners
+      predictions = fit_and_transform!(learner, nfrp)
+
+      @fact eltype(predictions) <: FloatingPoint => true
+      @fact all(x -> in(x, nfrp.train_labels), predictions) => true
+    end
+  end
+
 end
 
 end # module
