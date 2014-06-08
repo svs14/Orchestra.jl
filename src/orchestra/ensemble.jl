@@ -26,7 +26,7 @@ type VoteEnsemble <: Learner
   
   function VoteEnsemble(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Learners in voting committee.
@@ -60,7 +60,7 @@ type StackEnsemble <: Learner
   
   function StackEnsemble(options=Dict())
     default_options = {    
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Set of learners that produce feature space for stacker.
@@ -170,7 +170,7 @@ type BestLearner <: Learner
   
   function BestLearner(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Function to return partitions of instance indices.

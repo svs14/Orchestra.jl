@@ -20,7 +20,7 @@ type PrunedTree <: Learner
   
   function PrunedTree(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Options specific to this implementation.
@@ -49,7 +49,7 @@ type RandomForest <: Learner
   
   function RandomForest(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Options specific to this implementation.
@@ -95,7 +95,7 @@ type DecisionStumpAdaboost <: Learner
   
   function DecisionStumpAdaboost(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Options specific to this implementation.

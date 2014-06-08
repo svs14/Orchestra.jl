@@ -118,7 +118,7 @@ Outlined are all the transformers currently available via Orchestra.
 Baseline learner that by default assigns the most frequent label.
 ```julia
 learner = Baseline({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Label assignment strategy.
@@ -139,7 +139,7 @@ transformer = Identity()
 Set of machine learners that majority vote to decide prediction.
 ```julia
 learner = VoteEnsemble({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Learners in voting committee.
@@ -152,7 +152,7 @@ learner = VoteEnsemble({
 Ensemble where a 'stack' learner learns on a set of learners' predictions.
 ```julia
 learner = StackEnsemble({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Set of learners that produce feature space for stacker.
@@ -172,7 +172,7 @@ Selects best learner out of set.
 Will perform a grid search on learners if options grid is provided.
 ```julia
 learner = BestLearner({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Function to return partitions of instance indices.
@@ -249,7 +249,7 @@ transformer = Wrapper({
 Pruned ID3 decision tree.
 ```julia
 learner = PrunedTree({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Options specific to this implementation.
@@ -265,7 +265,7 @@ learner = PrunedTree({
 Random forest (C4.5).
 ```julia
 learner = RandomForest({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Options specific to this implementation.
@@ -285,7 +285,7 @@ learner = RandomForest({
 Adaboosted C4.5 decision stumps.
 ```julia
 learner = DecisionStumpAdaboost({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   # Options specific to this implementation.
@@ -356,7 +356,7 @@ Available learners:
 
 ```julia
 learner = SKLLearner({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   :learner => "LinearSVC",
@@ -381,7 +381,7 @@ Options for the specific CARET learner is to be passed
 in `options[:impl_options]` dictionary.
 ```julia
 learner = CRTLearner({
-  # Output to train against
+  # Target output.
   # (:class).
   :output => :class,
   :learner => "svmLinear",

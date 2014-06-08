@@ -17,7 +17,7 @@ type Baseline <: Learner
 
   function Baseline(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       # Label assignment strategy.

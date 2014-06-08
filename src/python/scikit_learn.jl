@@ -63,7 +63,7 @@ type SKLLearner <: Learner
   
   function SKLLearner(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       :learner => "LinearSVC",

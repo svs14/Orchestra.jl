@@ -68,7 +68,7 @@ type CRTLearner <: Learner
   
   function CRTLearner(options=Dict())
     default_options = {
-      # Output to train against
+      # Target output.
       # (:class).
       :output => :class,
       :learner => "svmLinear",
