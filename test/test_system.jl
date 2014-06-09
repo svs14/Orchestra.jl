@@ -27,18 +27,29 @@ concrete_learner_types = setdiff(
   all_concrete_subtypes(Learner),
   all_concrete_subtypes(TestLearner)
 )
+concrete_transformer_types = setdiff(
+  all_concrete_subtypes(Transformer),
+  all_concrete_subtypes(TestLearner)
+)
 
 using FactCheck
 using Fixtures
 
 facts("Orchestra system", using_fixtures) do
+  context("All transformers handle fixture data.", using_fixtures) do
+    for concrete_transformer_type in concrete_transformer_types
+      transformer = concrete_transformer_type()
+      transformations = fit_and_transform!(transformer, nfcp)
+      @fact typeof(transformations) <: Array => true
+    end
+  end
+
   context("All learners train and predict on fixture data.", using_fixtures) do
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
-      fit_and_transform!(learner, nfcp)
+      predictions = fit_and_transform!(learner, nfcp)
+      @fact infer_eltype(predictions) <: String => true
     end
-
-    @fact 1 => 1
   end
 
   context("All learners train and predict on iris dataset.", using_fixtures) do
@@ -56,10 +67,9 @@ facts("Orchestra system", using_fixtures) do
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
       fit!(learner, train_instances, train_labels)
-      transform!(learner, test_instances)
+      predictions = transform!(learner, test_instances)
+      @fact infer_eltype(predictions) <: String => true
     end
-
-    @fact 1 => 1
   end
 
   context("Ensemble with learners from different libraries work.", using_fixtures) do 
@@ -75,7 +85,7 @@ facts("Orchestra system", using_fixtures) do
     ensemble = VoteEnsemble({:learners => learners})
     predictions = fit_and_transform!(ensemble, nfcp)
 
-    @fact 1 => 1
+    @fact infer_eltype(predictions) <: String => true
   end
 
   context("Pipeline works with fixture data.", using_fixtures) do
@@ -88,7 +98,7 @@ facts("Orchestra system", using_fixtures) do
     pipeline = Pipeline({:transformers => transformers})
     predictions = fit_and_transform!(pipeline, fcp)
 
-    @fact 1 => 1
+    @fact infer_eltype(predictions) <: String => true
   end
 end
 
