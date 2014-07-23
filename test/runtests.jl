@@ -9,12 +9,12 @@ module TestRunner
   include(joinpath("julia", "test_mlbase.jl"))
   include(joinpath("julia", "test_dimensionalityreduction.jl"))
   include(joinpath("orchestra", "test_ensemble.jl"))
-  if HAS_SKL
+  if LIB_SKL_AVAILABLE
     include(joinpath("python", "test_scikit_learn.jl"))
   else
     info("Skipping scikit-learn tests.")
   end
-  if HAS_CRT
+  if LIB_CRT_AVAILABLE
     include(joinpath("r", "test_caret.jl"))
   else
     info("Skipping CARET tests.")

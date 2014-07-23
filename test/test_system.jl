@@ -66,10 +66,10 @@ facts("Orchestra system") do
     learners = Learner[]
     push!(learners, RandomForest())
     push!(learners, StackEnsemble())
-    if HAS_SKL
+    if LIB_SKL_AVAILABLE
       push!(learners, SKLLearner())
     end
-    if HAS_CRT
+    if LIB_CRT_AVAILABLE
       push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})

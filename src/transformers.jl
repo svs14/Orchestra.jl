@@ -23,7 +23,7 @@ export Transformer,
        transform!
 
 # Obtain system details
-import Orchestra.System: HAS_SKL, HAS_CRT
+import Orchestra.System: LIB_SKL_AVAILABLE, LIB_CRT_AVAILABLE
 
 # Include abstract types as convenience
 importall Orchestra.Types
@@ -43,13 +43,13 @@ include(joinpath("julia", "dimensionalityreduction.jl"))
 importall .DimensionalityReductionWrapper
 
 # Include Python transformers
-if HAS_SKL
+if LIB_SKL_AVAILABLE
   include(joinpath("python", "scikit_learn.jl"))
   importall .ScikitLearnWrapper
 end
 
 # Include R transformers
-if HAS_CRT
+if LIB_CRT_AVAILABLE
   include(joinpath("r", "caret.jl"))
   importall .CaretWrapper
 end
