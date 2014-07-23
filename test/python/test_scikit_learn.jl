@@ -15,6 +15,7 @@ using PyCall
 
 function skl_fit_and_transform!(learner::Learner, problem::MLProblem, seed=1)
   RAN.seed(seed)
+  srand(seed)
   return fit_and_transform!(learner, problem, seed)
 end
 
@@ -50,6 +51,7 @@ facts("scikit-learn learners") do
           random_state = 1
         )
       elseif learner_name == "RadiusNeighborsClassifier"
+        srand(1)
         outlier_label = nfcp.train_labels[rand(1:size(nfcp.train_labels, 1))]
         impl_options = {:outlier_label => outlier_label}
         sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
