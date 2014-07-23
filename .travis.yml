@@ -18,6 +18,7 @@ before_install:
   - sudo apt-get build-dep python-sklearn -y
   - sudo pip install -U scikit-learn
 script:
-  - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir("Orchestra"))`); Pkg.pin("Orchestra"); Pkg.resolve()'
-  - julia -e 'using Orchestra; @assert isdefined(:Orchestra); @assert typeof(Orchestra) === Module'
-  - julia test/runner.jl
+  - julia -e 'Pkg.init(); Pkg.clone(pwd())'
+  - julia --code-coverage test/runtests.jl
+after_success:
+  - julia -e 'cd(Pkg.dir("Orchestra.jl")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
