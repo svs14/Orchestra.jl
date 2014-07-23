@@ -41,7 +41,8 @@ facts("Ensemble learners") do
         AlwaysSameLabelLearner(always_a_options),
         AlwaysSameLabelLearner(always_a_options),
         PerfectScoreLearner()
-      ]
+      ],
+      :keep_original_features => true
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
     predictions = transform!(learner, nfcp.test_instances)

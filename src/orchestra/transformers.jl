@@ -225,8 +225,8 @@ function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
   fit!(transformer, instances, labels)
 
   wrapper.model = {
-      :transformer => transformer,
-      :transformer_options => transformer_options
+    :transformer => transformer,
+    :transformer_options => transformer_options
   }
 end
 

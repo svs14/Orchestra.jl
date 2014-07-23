@@ -21,10 +21,6 @@ vector_to_r{T<:Real}(vector::Vector{T}) = RO.FloatVector(vector)
 vector_to_r{T<:Bool}(vector::Vector{T}) = RO.BoolVector(vector)
 vector_to_r{T<:String}(vector::Vector{T}) = RO.StrVector(vector)
 function vector_to_r(vector::Vector{Any})
-  # Return most general type available if empty
-  if isempty(vector) 
-    return vector_to_r(convert(Vector{String}, vector))
-  end
   vec_eltype = infer_eltype(vector)
   if vec_eltype == Any
     error("Cannot handle R conversion for vector with differing element types.")

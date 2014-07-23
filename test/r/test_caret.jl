@@ -77,6 +77,20 @@ facts("CARET learners") do
   context("CRTLearner with options gives same results as its backend") do
     behavior_check("svmLinear", {:C => 5.0})
   end
+
+  context("CRTLearner throws on incompatible feature") do
+    instances = {
+      1 "a";
+      2 3;
+    }
+    labels = [
+      "a";
+      "b";
+    ]
+
+    learner = CRTLearner()
+    @fact_throws fit!(learner, instances, labels)
+  end
 end
 
 end # module

@@ -85,7 +85,8 @@ facts("Orchestra transformers") do
 
   context("Wrapper delegates to transformer") do
     wrapper = Wrapper({
-      :transformer => OneHotEncoder()
+      :transformer => OneHotEncoder(),
+      :transformer_options => Dict()
     })
     fit!(wrapper, fcp.train_instances, fcp.train_labels)
     transformed = transform!(wrapper, fcp.test_instances)

@@ -65,6 +65,15 @@ facts("DecisionTree learners") do
     # Verify same predictions
     @fact orchestra_predictions => original_predictions
   end
+
+  context("RandomForest handles training-dependent options") do
+    # Predict with Orchestra learner
+    learner = RandomForest({:impl_options => {:num_subfeatures => 2}})
+    orchestra_predictions = fit_and_transform!(learner, nfcp)
+
+    # Verify RandomForest didn't die
+    @fact 1 => 1
+  end
 end
 
 end # module
