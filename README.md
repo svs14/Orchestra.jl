@@ -326,7 +326,7 @@ transformer = StandardScaler({
 
 See the scikit-learn [API](http://scikit-learn.org/stable/modules/classes.html) for what options are available per learner.
 
-#### SKLLearner (scikit-learn 0.14 Learner)
+#### SKLLearner (scikit-learn 0.15 Learner)
 
 Wrapper for scikit-learn that provides access to most learners.
 
@@ -335,9 +335,12 @@ in `options[:impl_options]` dictionary.
 
 Available learners:
 
-  - "RandomForestClassifier"
+  - "AdaBoostClassifier"
+  - "BaggingClassifier"
   - "ExtraTreesClassifier"
   - "GradientBoostingClassifier"
+  - "RandomForestClassifier"
+  - "LDA"
   - "LogisticRegression"
   - "PassiveAggressiveClassifier"
   - "RidgeClassifier"
@@ -346,6 +349,7 @@ Available learners:
   - "KNeighborsClassifier"
   - "RadiusNeighborsClassifier"
   - "NearestCentroid"
+  - "QDA"
   - "SVC"
   - "LinearSVC"
   - "NuSVC"

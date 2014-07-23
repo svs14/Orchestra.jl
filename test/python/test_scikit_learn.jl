@@ -46,9 +46,14 @@ facts("scikit-learn learners") do
       impl_options = Dict()
 
       fragile_learners = [
-        "RandomForestClassifier", 
+        "AdaBoostClassifier",
+        "BaggingClassifier",
         "ExtraTreesClassifier",
-        "RadiusNeighborsClassifier"
+        "GradientBoostingClassifier",
+        "RandomForestClassifier",
+        "SGDClassifier",
+        "RadiusNeighborsClassifier",
+        "RidgeClassifierCV"
       ]
 
       learner = SKLLearner({

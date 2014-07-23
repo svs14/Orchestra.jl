@@ -7,6 +7,8 @@ importall Orchestra.Util
 using PyCall
 @pyimport sklearn.ensemble as ENS
 @pyimport sklearn.linear_model as LM
+@pyimport sklearn.lda as LDA_M
+@pyimport sklearn.qda as QDA_M
 @pyimport sklearn.neighbors as NN
 @pyimport sklearn.svm as SVM
 @pyimport sklearn.tree as TREE
@@ -17,9 +19,12 @@ export SKLLearner,
 
 # Available scikit-learn learners.
 learner_dict = {
-  "RandomForestClassifier" => ENS.RandomForestClassifier,
+  "AdaBoostClassifier" => ENS.AdaBoostClassifier,
+  "BaggingClassifier" => ENS.BaggingClassifier,
   "ExtraTreesClassifier" => ENS.ExtraTreesClassifier,
   "GradientBoostingClassifier" => ENS.GradientBoostingClassifier,
+  "RandomForestClassifier" => ENS.RandomForestClassifier,
+  "LDA" => LDA_M.LDA,
   "LogisticRegression" => LM.LogisticRegression,
   "PassiveAggressiveClassifier" => LM.PassiveAggressiveClassifier,
   "RidgeClassifier" => LM.RidgeClassifier,
@@ -28,6 +33,7 @@ learner_dict = {
   "KNeighborsClassifier" => NN.KNeighborsClassifier,
   "RadiusNeighborsClassifier" => NN.RadiusNeighborsClassifier,
   "NearestCentroid" => NN.NearestCentroid,
+  "QDA" => QDA_M.QDA,
   "SVC" => SVM.SVC,
   "LinearSVC" => SVM.LinearSVC,
   "NuSVC" => SVM.NuSVC,
@@ -41,9 +47,12 @@ learner_dict = {
 # 
 # Available learners:
 #
-#   - "RandomForestClassifier"
+#   - "AdaBoostClassifier"
+#   - "BaggingClassifier"
 #   - "ExtraTreesClassifier"
 #   - "GradientBoostingClassifier"
+#   - "RandomForestClassifier"
+#   - "LDA"
 #   - "LogisticRegression"
 #   - "PassiveAggressiveClassifier"
 #   - "RidgeClassifier"
@@ -52,6 +61,7 @@ learner_dict = {
 #   - "KNeighborsClassifier"
 #   - "RadiusNeighborsClassifier"
 #   - "NearestCentroid"
+#   - "QDA"
 #   - "SVC"
 #   - "LinearSVC"
 #   - "NuSVC"
