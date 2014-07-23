@@ -26,6 +26,7 @@ learner_dict = {
   "RidgeClassifierCV" => LM.RidgeClassifierCV,
   "SGDClassifier" => LM.SGDClassifier,
   "KNeighborsClassifier" => NN.KNeighborsClassifier,
+  "RadiusNeighborsClassifier" => NN.RadiusNeighborsClassifier,
   "NearestCentroid" => NN.NearestCentroid,
   "SVC" => SVM.SVC,
   "LinearSVC" => SVM.LinearSVC,
@@ -49,6 +50,7 @@ learner_dict = {
 #   - "RidgeClassifierCV"
 #   - "SGDClassifier"
 #   - "KNeighborsClassifier"
+#   - "RadiusNeighborsClassifier"
 #   - "NearestCentroid"
 #   - "SVC"
 #   - "LinearSVC"
@@ -76,6 +78,13 @@ function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   impl_options = copy(sklw.options[:impl_options])
   learner = sklw.options[:learner]
   py_learner = learner_dict[learner]
+
+  # Assign Orchestra-specific defaults if required
+  if learner == "RadiusNeighborsClassifier"
+    if get(impl_options, :outlier_label, nothing) == nothing
+      impl_options[:outlier_label] = labels[rand(1:size(labels, 1))]
+    end
+  end
 
   # Train
   sklw.model = py_learner(;impl_options...)

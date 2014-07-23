@@ -49,6 +49,10 @@ facts("scikit-learn learners") do
         sk_learner = ScikitLearnWrapper.learner_dict[learner_name](
           random_state = 1
         )
+      elseif learner_name == "RadiusNeighborsClassifier"
+        outlier_label = nfcp.train_labels[rand(1:size(nfcp.train_labels, 1))]
+        impl_options = {:outlier_label => outlier_label}
+        sk_learner = NN.RadiusNeighborsClassifier(outlier_label = outlier_label)
       end
 
       learner = SKLLearner({
@@ -57,6 +61,13 @@ facts("scikit-learn learners") do
       })
       behavior_check(learner, sk_learner)
     end
+  end
+  context("SKLLearner handles RadiusNeighborsClassifier") do
+    learner = SKLLearner({
+      :learner => "RadiusNeighborsClassifier"
+    })
+    orchestra_predictions = skl_fit_and_transform!(learner, nfcp)
+    @fact 1 => 1
   end
 end
 

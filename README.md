@@ -347,6 +347,7 @@ Available learners:
   - "RidgeClassifierCV"
   - "SGDClassifier"
   - "KNeighborsClassifier"
+  - "RadiusNeighborsClassifier"
   - "NearestCentroid"
   - "SVC"
   - "LinearSVC"
