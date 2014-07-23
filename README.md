@@ -29,10 +29,6 @@ labels = array(dataset[:, end])
 
 # Split into training and test sets
 (train_ind, test_ind) = holdout(size(instances, 1), 0.3)
-train_instances = instances[train_ind, :]
-test_instances = instances[test_ind, :]
-train_labels = labels[train_ind]
-test_labels = labels[test_ind]
 ```
 
 ### Create a Learner
@@ -93,10 +89,10 @@ All transformers, provide these two functions. They are always called the same w
 
 ```julia
 # Train
-fit!(pipeline, train_instances, train_labels)
+fit!(pipeline, instances[train_ind, :], labels[train_ind])
 
 # Predict
-predictions = transform!(pipeline, test_instances)
+predictions = transform!(pipeline, instances[test_ind, :])
 ```
 
 ### Assess
@@ -105,7 +101,7 @@ Finally we assess how well our learner performed.
 
 ```julia
 # Assess predictions
-result = score(:accuracy, test_labels, predictions)
+result = score(:accuracy, labels[test_ind], predictions)
 ```
 
 ## Available Transformers
