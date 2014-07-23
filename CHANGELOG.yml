@@ -1,6 +1,10 @@
 %YAML 1.2
 ---
 changes:
+  v0.0.5:
+    - Update to conform to new MLBase Kfold API.
+    - Maximal test coverage.
+    - Package dependency cleanup.
   v0.0.4:
     - Fix for string vector conversion in R.
     - Rename of BestLearnerSelection to BestLearner.

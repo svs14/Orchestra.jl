@@ -1,6 +1,7 @@
 # Orchestra
 
 [![Build Status](https://travis-ci.org/svs14/Orchestra.jl.svg?branch=master)](https://travis-ci.org/svs14/Orchestra.jl)
+[![Coverage Status](https://coveralls.io/repos/svs14/Orchestra.jl/badge.png?branch=master)](https://coveralls.io/r/svs14/Orchestra.jl?branch=master)
 
 Orchestra is a heterogeneous ensemble learning package for the Julia programming
 language. It is driven by a uniform machine learner API designed for learner
@@ -28,10 +29,6 @@ labels = array(dataset[:, end])
 
 # Split into training and test sets
 (train_ind, test_ind) = holdout(size(instances, 1), 0.3)
-train_instances = instances[train_ind, :]
-test_instances = instances[test_ind, :]
-train_labels = labels[train_ind]
-test_labels = labels[test_ind]
 ```
 
 ### Create a Learner
@@ -92,10 +89,10 @@ All transformers, provide these two functions. They are always called the same w
 
 ```julia
 # Train
-fit!(pipeline, train_instances, train_labels)
+fit!(pipeline, instances[train_ind, :], labels[train_ind])
 
 # Predict
-predictions = transform!(pipeline, test_instances)
+predictions = transform!(pipeline, instances[test_ind, :])
 ```
 
 ### Assess
@@ -104,7 +101,7 @@ Finally we assess how well our learner performed.
 
 ```julia
 # Assess predictions
-result = score(:accuracy, test_labels, predictions)
+result = score(:accuracy, labels[test_ind], predictions)
 ```
 
 ## Available Transformers
