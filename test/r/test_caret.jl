@@ -5,7 +5,7 @@ using .FixtureLearners
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 using MLBase
 importall Orchestra.Types
@@ -67,15 +67,29 @@ function behavior_check(caret_learner::String, impl_options=Dict())
   @fact orchestra_predictions => original_predictions
 end
 
-facts("CARET learners", using_fixtures) do
-  context("CRTLearner gives same results as its backend", using_fixtures) do
+facts("CARET learners") do
+  context("CRTLearner gives same results as its backend") do
     caret_learners = ["svmLinear", "nnet", "earth"]
     for caret_learner in caret_learners
       behavior_check(caret_learner)
     end
   end
-  context("CRTLearner with options gives same results as its backend", using_fixtures) do
+  context("CRTLearner with options gives same results as its backend") do
     behavior_check("svmLinear", {:C => 5.0})
+  end
+
+  context("CRTLearner throws on incompatible feature") do
+    instances = {
+      1 "a";
+      2 3;
+    }
+    labels = [
+      "a";
+      "b";
+    ]
+
+    learner = CRTLearner()
+    @fact_throws fit!(learner, instances, labels)
   end
 end
 

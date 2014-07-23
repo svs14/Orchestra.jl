@@ -3,7 +3,7 @@ module BaselineMethods
 
 importall Orchestra.Types
 importall Orchestra.Util
-import Stats: mode
+import StatsBase: mode
 
 export Baseline,
        Identity,

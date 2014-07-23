@@ -6,12 +6,12 @@ fcp = FeatureClassification()
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Transformers.BaselineMethods
 
-facts("Baseline transformers", using_fixtures) do
-  context("Baseline learner does simple transforms", using_fixtures) do
+facts("Baseline transformers") do
+  context("Baseline learner does simple transforms") do
     bl = Baseline()
     instances = [
       1 1;
@@ -25,7 +25,7 @@ facts("Baseline transformers", using_fixtures) do
 
     @fact transformed => expected_transformed
   end
-  context("Identity returns instances as is", using_fixtures) do
+  context("Identity returns instances as is") do
     id = Identity()
     fit!(id, nfcp.train_instances, nfcp.train_labels)
     transformed = transform!(id, nfcp.test_instances)

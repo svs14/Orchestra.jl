@@ -6,12 +6,12 @@ fcp = FeatureClassification()
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Transformers.OrchestraTransformers
 
-facts("Orchestra transformers", using_fixtures) do
-  context("OneHotEncoder transforms nominal features", using_fixtures) do
+facts("Orchestra transformers") do
+  context("OneHotEncoder transforms nominal features") do
     instances = [
       2 "a" 1 "c";
       1 "b" 2 "d";
@@ -30,7 +30,7 @@ facts("Orchestra transformers", using_fixtures) do
 
     @fact transformed => expected_transformed
   end
-  context("OneHotEncoder transforms with options", using_fixtures) do
+  context("OneHotEncoder transforms with options") do
     nominal_columns = [3, 5]
     nominal_column_values_map = {
       3 => ["a", "b", "c", "d", "e"],
@@ -45,7 +45,7 @@ facts("Orchestra transformers", using_fixtures) do
 
     @fact size(transformed, 2) => 13
   end
-  context("OneHotEncoder handles no nominal features", using_fixtures) do
+  context("OneHotEncoder handles no nominal features") do
     encoder = OneHotEncoder()
     fit!(encoder, nfcp.train_instances, nfcp.train_labels)
     transformed = transform!(encoder, nfcp.test_instances)
@@ -53,7 +53,7 @@ facts("Orchestra transformers", using_fixtures) do
     @fact size(transformed, 2) => 2
   end
 
-  context("Imputer replaces NA", using_fixtures) do
+  context("Imputer replaces NA") do
     instances = [
       1.0      1.0;
       nan(1.0) 1.0;
@@ -74,7 +74,7 @@ facts("Orchestra transformers", using_fixtures) do
     @fact transformed => expected_transformed
   end
 
-  context("Pipeline chains transformers", using_fixtures) do
+  context("Pipeline chains transformers") do
     pipe = Pipeline()
     fit!(pipe, fcp.train_instances, fcp.train_labels)
     transformed = transform!(pipe, fcp.test_instances)
@@ -83,9 +83,10 @@ facts("Orchestra transformers", using_fixtures) do
     @fact true => !any(map(x -> isnan(x), transformed))
   end
 
-  context("Wrapper delegates to transformer", using_fixtures) do
+  context("Wrapper delegates to transformer") do
     wrapper = Wrapper({
-      :transformer => OneHotEncoder()
+      :transformer => OneHotEncoder(),
+      :transformer_options => Dict()
     })
     fit!(wrapper, fcp.train_instances, fcp.train_labels)
     transformed = transform!(wrapper, fcp.test_instances)

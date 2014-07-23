@@ -29,10 +29,10 @@ concrete_learner_types = setdiff(
 )
 
 using FactCheck
-using Fixtures
 
-facts("Orchestra system", using_fixtures) do
-  context("All learners train and predict on fixture data.", using_fixtures) do
+
+facts("Orchestra system") do
+  context("All learners train and predict on fixture data.") do
     for concrete_learner_type in concrete_learner_types
       learner = concrete_learner_type()
       fit_and_transform!(learner, nfcp)
@@ -41,7 +41,7 @@ facts("Orchestra system", using_fixtures) do
     @fact 1 => 1
   end
 
-  context("All learners train and predict on iris dataset.", using_fixtures) do
+  context("All learners train and predict on iris dataset.") do
     # Get data
     dataset = readcsv(joinpath(dirname(@__FILE__), "iris.csv"))
     instances = dataset[:,1:(end-1)]
@@ -62,14 +62,14 @@ facts("Orchestra system", using_fixtures) do
     @fact 1 => 1
   end
 
-  context("Ensemble with learners from different libraries work.", using_fixtures) do 
+  context("Ensemble with learners from different libraries work.") do 
     learners = Learner[]
     push!(learners, RandomForest())
     push!(learners, StackEnsemble())
-    if HAS_SKL
+    if LIB_SKL_AVAILABLE
       push!(learners, SKLLearner())
     end
-    if HAS_CRT
+    if LIB_CRT_AVAILABLE
       push!(learners, CRTLearner())
     end
     ensemble = VoteEnsemble({:learners => learners})
@@ -78,7 +78,7 @@ facts("Orchestra system", using_fixtures) do
     @fact 1 => 1
   end
 
-  context("Pipeline works with fixture data.", using_fixtures) do
+  context("Pipeline works with fixture data.") do
     transformers = [
       OneHotEncoder(),
       Imputer(),

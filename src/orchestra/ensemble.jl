@@ -4,7 +4,7 @@ module EnsembleMethods
 importall Orchestra.Types
 importall Orchestra.Util
 
-import Stats
+import StatsBase
 import Iterators: product
 import MLBase
 
@@ -50,7 +50,7 @@ function transform!(ve::VoteEnsemble, instances::Matrix)
   learners = ve.options[:learners]
   predictions = map(learner -> transform!(learner, instances), learners)
   # Return majority vote prediction
-  return Stats.mode(predictions)
+  return StatsBase.mode(predictions)
 end
 
 # Ensemble where a 'stack' learner learns on a set of learners' predictions.
@@ -193,10 +193,6 @@ type BestLearner <: Learner
 end
 
 function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
-  # Generate partitions
-  partition_generator = bls.options[:partition_generator]
-  partitions = partition_generator(instances, labels)
-  
   # Obtain learners as is if no options grid present 
   if bls.options[:learner_options_grid] == nothing
     learners = bls.options[:learners]
@@ -208,7 +204,7 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
     for l_index in 1:length(bls.options[:learners])
       # Obtain options grid
       options_prototype = bls.options[:learner_options_grid][l_index]
-      grid_list = nested_dict_to_list(options_prototype)
+      grid_list = nested_dict_to_tuples(options_prototype)
       grid_keys = map(x -> x[1], grid_list)
       grid_values = map(x -> x[2], grid_list)
 
@@ -232,6 +228,10 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
       end
     end
   end
+
+  # Generate partitions
+  partition_generator = bls.options[:partition_generator]
+  partitions = partition_generator(instances, labels)
 
   # Train each learner on each partition and obtain validation output
   num_partitions = size(partitions, 1)

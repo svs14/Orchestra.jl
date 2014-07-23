@@ -3,8 +3,8 @@ module System
 
 import PyCall: pyimport, pycall
 
-export HAS_SKL,
-       HAS_CRT
+export LIB_SKL_AVAILABLE,
+       LIB_CRT_AVAILABLE
 
 function check_py_dep(package::String)
   is_available = true
@@ -19,8 +19,7 @@ end
 function check_r_dep(package::String)
   is_available = true
   try
-    rpy2_packages = pyimport("rpy2.robjects.packages")
-    pycall(rpy2_packages["importr"], Any, package)
+    pycall(pyimport("rpy2.robjects.packages")["importr"], Any, package)
   catch
     is_available = false
   end
@@ -28,7 +27,7 @@ function check_r_dep(package::String)
 end
 
 # Check system for python dependencies.
-HAS_SKL = check_py_dep("sklearn")
-HAS_CRT = check_r_dep("caret")
+LIB_SKL_AVAILABLE = check_py_dep("sklearn")
+LIB_CRT_AVAILABLE = check_r_dep("caret")
 
 end # module
