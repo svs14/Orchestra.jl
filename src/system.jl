@@ -19,8 +19,7 @@ end
 function check_r_dep(package::String)
   is_available = true
   try
-    rpy2_packages = pyimport("rpy2.robjects.packages")
-    pycall(rpy2_packages["importr"], Any, package)
+    pycall(pyimport("rpy2.robjects.packages")["importr"], Any, package)
   catch
     is_available = false
   end
