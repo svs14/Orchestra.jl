@@ -27,9 +27,7 @@ facts("Orchestra util functions", using_fixtures) do
     partitions = kfold(num_instances, num_partitions)
 
     @fact size(partitions, 1) => num_partitions
-    # Check pairwise intersection of partitions
-    @fact size([partitions...], 1) => size(unique([partitions...]), 1)
-    @fact size(union(partitions...), 1) => num_instances
+    [@fact length(partition) >= 6 => true for partition in partitions]
   end
 
   context("score calculates accuracy", using_fixtures) do

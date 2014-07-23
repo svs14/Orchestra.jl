@@ -193,10 +193,6 @@ type BestLearner <: Learner
 end
 
 function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
-  # Generate partitions
-  partition_generator = bls.options[:partition_generator]
-  partitions = partition_generator(instances, labels)
-  
   # Obtain learners as is if no options grid present 
   if bls.options[:learner_options_grid] == nothing
     learners = bls.options[:learners]
@@ -232,6 +228,10 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
       end
     end
   end
+
+  # Generate partitions
+  partition_generator = bls.options[:partition_generator]
+  partitions = partition_generator(instances, labels)
 
   # Train each learner on each partition and obtain validation output
   num_partitions = size(partitions, 1)

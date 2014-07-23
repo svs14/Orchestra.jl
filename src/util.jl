@@ -3,7 +3,6 @@ module Util
 
 importall Orchestra.Types
 import MLBase: Kfold
-using Match
 
 export holdout,
        kfold,
@@ -32,8 +31,7 @@ end
 #
 # @param num_instances Total number of instances.
 # @param num_partitions Number of partitions required.
-# @return Returns num_partitions-element Array{Any, 1} with
-#     partition of indices as elements.
+# @return Returns training set partition.
 function kfold(num_instances, num_partitions)
   return collect(Kfold(num_instances, num_partitions))
 end
@@ -48,9 +46,10 @@ end
 # @param predicted Predicted values.
 # @return Score of learner.
 function score(metric::Symbol, actual, predicted)
-  return @match metric begin
-    :accuracy => mean(actual .== predicted) * 100.0
-    _ => error("Metric $metric not implemented for score.")
+  if metric == :accuracy
+    mean(actual .== predicted) * 100.0
+  else
+    error("Metric $metric not implemented for score.")
   end
 end
 
