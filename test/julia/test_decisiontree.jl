@@ -5,13 +5,13 @@ using .FixtureLearners
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Transformers.DecisionTreeWrapper
 using DecisionTree
 
-facts("DecisionTree learners", using_fixtures) do
-  context("PrunedTree gives same results as its backend", using_fixtures) do
+facts("DecisionTree learners") do
+  context("PrunedTree gives same results as its backend") do
     # Predict with Orchestra learner
     learner = PrunedTree()
     orchestra_predictions = fit_and_transform!(learner, nfcp)
@@ -26,7 +26,7 @@ facts("DecisionTree learners", using_fixtures) do
     @fact orchestra_predictions => original_predictions
   end
 
-  context("RandomForest gives same results as its backend", using_fixtures) do
+  context("RandomForest gives same results as its backend") do
     # Predict with Orchestra learner
     learner = RandomForest()
     orchestra_predictions = fit_and_transform!(learner, nfcp)
@@ -46,7 +46,7 @@ facts("DecisionTree learners", using_fixtures) do
     @fact orchestra_predictions => original_predictions
   end
 
-  context("DecisionStumpAdaboost gives same results as its backend", using_fixtures) do
+  context("DecisionStumpAdaboost gives same results as its backend") do
     # Predict with Orchestra learner
     learner = DecisionStumpAdaboost()
     orchestra_predictions = fit_and_transform!(learner, nfcp)

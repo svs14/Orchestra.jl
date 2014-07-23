@@ -5,7 +5,7 @@ using .FixtureLearners
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Transformers.EnsembleMethods
 import Orchestra.Transformers.DecisionTreeWrapper: fit!, transform!
@@ -13,8 +13,8 @@ import Orchestra.Transformers.DecisionTreeWrapper: PrunedTree
 import Orchestra.Transformers.DecisionTreeWrapper: RandomForest
 import Orchestra.Transformers.DecisionTreeWrapper: DecisionStumpAdaboost
 
-facts("Ensemble learners", using_fixtures) do
-  context("VoteEnsemble predicts according to majority", using_fixtures) do
+facts("Ensemble learners") do
+  context("VoteEnsemble predicts according to majority") do
     always_a_options = { :label => "a" }
     always_b_options = { :label => "b" }
     learner = VoteEnsemble({
@@ -31,7 +31,7 @@ facts("Ensemble learners", using_fixtures) do
     @fact predictions => expected_predictions
   end
 
-  context("StackEnsemble predicts with combined learners", using_fixtures) do
+  context("StackEnsemble predicts with combined learners") do
     # Fix random seed, due to stochasticity in stacker.
     srand(2)
 
@@ -50,7 +50,7 @@ facts("Ensemble learners", using_fixtures) do
     @fact predictions => not(unexpected_predictions)
   end
 
-  context("BestLearner picks the best learner", using_fixtures) do
+  context("BestLearner picks the best learner") do
     always_a_options = { :label => "a" }
     always_b_options = { :label => "b" }
     learner = BestLearner({
@@ -65,7 +65,7 @@ facts("Ensemble learners", using_fixtures) do
     @fact learner.model[:best_learner_index] => 2
   end
 
-  context("BestLearner conducts grid search", using_fixtures) do
+  context("BestLearner conducts grid search") do
     learner = BestLearner({
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()],
       :learner_options_grid => [

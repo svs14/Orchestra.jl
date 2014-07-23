@@ -5,12 +5,12 @@ using .FixtureLearners
 fcp = FeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Transformers.MLBaseWrapper
 
-facts("MLBase transformers", using_fixtures) do
-  context("StandardScaler transforms features", using_fixtures) do
+facts("MLBase transformers") do
+  context("StandardScaler transforms features") do
     instances = [
       5 10;
       -5 0;

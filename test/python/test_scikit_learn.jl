@@ -5,7 +5,7 @@ using .FixtureLearners
 nfcp = NumericFeatureClassification()
 
 using FactCheck
-using Fixtures
+
 
 importall Orchestra.Types
 importall Orchestra.Transformers.ScikitLearnWrapper
@@ -37,8 +37,8 @@ function behavior_check(learner::Learner, sk_learner)
 end
 
 
-facts("scikit-learn learners", using_fixtures) do
-  context("SKLLearner gives same results as its backend", using_fixtures) do
+facts("scikit-learn learners") do
+  context("SKLLearner gives same results as its backend") do
     learner_names = collect(keys(ScikitLearnWrapper.learner_dict))
     for learner_name in learner_names
       sk_learner = ScikitLearnWrapper.learner_dict[learner_name]()
