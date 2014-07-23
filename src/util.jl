@@ -8,7 +8,7 @@ export holdout,
        kfold,
        score,
        infer_eltype,
-       nested_dict_to_list,
+       nested_dict_to_tuples,
        nested_dict_set!,
        nested_dict_merge,
        create_transformer
@@ -81,21 +81,21 @@ end
 #
 # @param dict Dictionary that can have other dictionaries as values.
 # @return List where elements are ([outer-key, inner-key, ...], value).
-function nested_dict_to_list(dict::Dict)
-  list = Any[]
+function nested_dict_to_tuples(dict::Dict)
+  set = Set()
   for (entry_id, entry_val) in dict
     if typeof(entry_val) <: Dict
-      inner_list = nested_dict_to_list(entry_val)
-      for (inner_entry_id, inner_entry_val) in inner_list
+      inner_set = nested_dict_to_tuples(entry_val)
+      for (inner_entry_id, inner_entry_val) in inner_set
         new_entry = (vcat([entry_id], inner_entry_id), inner_entry_val)
-        push!(list, new_entry)
+        push!(set, new_entry)
       end
     else
       new_entry = ([entry_id], entry_val)
-      push!(list, new_entry)
+      push!(set, new_entry)
     end
   end
-  return list
+  return set
 end
 
 # Set value in a nested dictionary.

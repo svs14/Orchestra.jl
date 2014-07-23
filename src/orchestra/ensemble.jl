@@ -204,7 +204,7 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
     for l_index in 1:length(bls.options[:learners])
       # Obtain options grid
       options_prototype = bls.options[:learner_options_grid][l_index]
-      grid_list = nested_dict_to_list(options_prototype)
+      grid_list = nested_dict_to_tuples(options_prototype)
       grid_keys = map(x -> x[1], grid_list)
       grid_values = map(x -> x[2], grid_list)
 

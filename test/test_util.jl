@@ -52,20 +52,20 @@ facts("Orchestra util functions", using_fixtures) do
     @fact infer_eltype(vector[1:3]) => Int
   end
 
-  context("nested_dict_to_list produces list of tuples", using_fixtures) do
+  context("nested_dict_to_tuples produces list of tuples", using_fixtures) do
     nested_dict = {
       :a => [1,2],
       :b => {
         :c => [3,4,5]
       }
     }
-    expected_list = {
+    expected_set = Set({
       ([:a], [1,2]),
       ([:b,:c], [3,4,5])
-    }
-    list = nested_dict_to_list(nested_dict)
+    })
+    set = nested_dict_to_tuples(nested_dict)
 
-    @fact list => expected_list
+    @fact set => expected_set
   end
 
   context("nested_dict_set! assigns values", using_fixtures) do
