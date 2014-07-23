@@ -21,4 +21,4 @@ script:
   - julia -e 'Pkg.init(); Pkg.clone(pwd())'
   - julia --code-coverage test/runtests.jl
 after_success:
-  - julia -e 'cd(Pkg.dir("Orchestra.jl")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  - julia -e 'cd(Pkg.dir("Orchestra")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
