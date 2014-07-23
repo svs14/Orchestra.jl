@@ -4,7 +4,7 @@ module EnsembleMethods
 importall Orchestra.Types
 importall Orchestra.Util
 
-import Stats
+import StatsBase
 import Iterators: product
 import MLBase
 
@@ -50,7 +50,7 @@ function transform!(ve::VoteEnsemble, instances::Matrix)
   learners = ve.options[:learners]
   predictions = map(learner -> transform!(learner, instances), learners)
   # Return majority vote prediction
-  return Stats.mode(predictions)
+  return StatsBase.mode(predictions)
 end
 
 # Ensemble where a 'stack' learner learns on a set of learners' predictions.
