@@ -63,7 +63,7 @@ facts("Ensemble learners") do
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
 
-    @fact learner.model[:best_learner_index] => 2
+    @fact learner.model[:impl][:best_learner_index] => 2
   end
 
   context("BestLearner conducts grid search") do
@@ -86,7 +86,7 @@ facts("Ensemble learners") do
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
 
-    @fact length(learner.model[:learners]) => 8
+    @fact length(learner.model[:impl][:learners]) => 8
   end
 end
 

@@ -12,8 +12,8 @@ export Baseline,
 
 # Baseline learner that by default assigns the most frequent label.
 type Baseline <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
 
   function Baseline(options=Dict())
     default_options = {
@@ -24,32 +24,34 @@ type Baseline <: Learner
       # Function that takes a label vector and returns the required output.
       :strategy => mode
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(bl::Baseline, instances::Matrix, labels::Vector)
-  bl.model = bl.options[:strategy](labels)
+  bl.model[:impl] = bl.options[:strategy](labels)
+
+  return bl
 end
 
 function transform!(bl::Baseline, instances::Matrix)
-  return fill(bl.model, size(instances, 1))
+  return fill(bl.model[:impl], size(instances, 1))
 end
 
 
 # Identity transformer passes the instances as is.
 type Identity <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function Identity(options=Dict())
-    default_options = Dict{Symbol, Any}()
-    new(nothing, nested_dict_merge(default_options, options))
+    default_options = Dict()
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(id::Identity, instances::Matrix, labels::Vector)
-  nothing
+  return id
 end
 
 function transform!(id::Identity, instances::Matrix)

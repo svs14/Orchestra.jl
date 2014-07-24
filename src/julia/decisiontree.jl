@@ -15,8 +15,8 @@ export PrunedTree,
 
 # Pruned ID3 decision tree.
 type PrunedTree <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function PrunedTree(options=Dict())
     default_options = {
@@ -29,23 +29,28 @@ type PrunedTree <: Learner
         :purity_threshold => 1.0
       }
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(tree::PrunedTree, instances::Matrix, labels::Vector)
   impl_options = tree.options[:impl_options]
-  tree.model = DT.build_tree(labels, instances)
-  tree.model = DT.prune_tree(tree.model, impl_options[:purity_threshold])
+
+  tree.model[:impl] = DT.build_tree(labels, instances)
+  tree.model[:impl] = DT.prune_tree(
+    tree.model[:impl], impl_options[:purity_threshold]
+  )
+
+  return tree
 end
 function transform!(tree::PrunedTree, instances::Matrix)
-  return DT.apply_tree(tree.model, instances)
+  return DT.apply_tree(tree.model[:impl], instances)
 end
 
 # Random forest (C4.5).
 type RandomForest <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function RandomForest(options=Dict())
     default_options = {
@@ -62,7 +67,7 @@ type RandomForest <: Learner
         :partial_sampling => 0.7
       }
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -74,24 +79,27 @@ function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
   else
     num_subfeatures = impl_options[:num_subfeatures]
   end
+
   # Build model
-  forest.model = DT.build_forest(
+  forest.model[:impl] = DT.build_forest(
     labels, 
     instances,
     num_subfeatures, 
     impl_options[:num_trees],
     impl_options[:partial_sampling]
   )
+
+  return forest
 end
 
 function transform!(forest::RandomForest, instances::Matrix)
-  return DT.apply_forest(forest.model, instances)
+  return DT.apply_forest(forest.model[:impl], instances)
 end
 
 # Adaboosted C4.5 decision stumps.
 type DecisionStumpAdaboost <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function DecisionStumpAdaboost(options=Dict())
     default_options = {
@@ -104,7 +112,7 @@ type DecisionStumpAdaboost <: Learner
         :num_iterations => 7
       }
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -118,15 +126,20 @@ function fit!(adaboost::DecisionStumpAdaboost,
   ensemble, coefficients = DT.build_adaboost_stumps(
     labels, instances, adaboost.options[:impl_options][:num_iterations]
   )
-  adaboost.model = {
+
+  adaboost.model[:impl] = {
     :ensemble => ensemble,
     :coefficients => coefficients
   }
+
+  return adaboost
 end
 
 function transform!(adaboost::DecisionStumpAdaboost, instances::Matrix)
   return DT.apply_adaboost_stumps(
-    adaboost.model[:ensemble], adaboost.model[:coefficients], instances
+    adaboost.model[:impl][:ensemble],
+    adaboost.model[:impl][:coefficients],
+    instances
   )
 end
 

@@ -15,25 +15,29 @@ export PCA,
 #
 # Fails if zero-variance feature exists.
 type PCA <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function PCA(options=Dict())
     default_options = {
+      # Center features
       :center => true,
+      # Scale features
       :scale => true
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(p::PCA, instances::Matrix, labels::Vector)
   pca_model = pca(instances; p.options...)
-  p.model = pca_model
+  p.model[:impl] = pca_model
+
+  return p
 end
 
 function transform!(p::PCA, instances::Matrix)
-  return instances * p.model.rotation
+  return instances * p.model[:impl].rotation
 end
 
 end # module

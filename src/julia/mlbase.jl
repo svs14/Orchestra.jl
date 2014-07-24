@@ -13,27 +13,31 @@ export StandardScaler,
 # Standardizes each feature using (X - mean) / stddev.
 # Will produce NaN if standard deviation is zero.
 type StandardScaler <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function StandardScaler(options=Dict())
     default_options = {
+      # Center features
       :center => true,
+      # Scale features
       :scale => true
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(st::StandardScaler, instances::Matrix, labels::Vector)
   st_transform = estimate(Standardize, instances'; st.options...)
-  st.model = {
+  st.model[:impl] = {
     :standardize_transform => st_transform
   }
+
+  return st
 end
 
 function transform!(st::StandardScaler, instances::Matrix)
-  st_transform = st.model[:standardize_transform]
+  st_transform = st.model[:impl][:standardize_transform]
   transposed_instances = instances'
   return transform(st_transform, transposed_instances)'
 end

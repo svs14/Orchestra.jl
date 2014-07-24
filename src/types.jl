@@ -23,6 +23,7 @@ abstract TestLearner <: Learner
 # @param transformer Target transformer.
 # @param instances Training instances.
 # @param labels Training labels.
+# @return Mutated target transformer.
 function fit!(transformer::Transformer, instances::Matrix, labels::Vector)
   error(typeof(transformer), " does not implement fit!")
 end

@@ -21,8 +21,8 @@ export VoteEnsemble,
 
 # Set of machine learners that majority vote to decide prediction.
 type VoteEnsemble <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function VoteEnsemble(options=Dict())
     default_options = {
@@ -32,7 +32,7 @@ type VoteEnsemble <: Learner
       # Learners in voting committee.
       :learners => [PrunedTree(), DecisionStumpAdaboost(), RandomForest()]
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -42,12 +42,14 @@ function fit!(ve::VoteEnsemble, instances::Matrix, labels::Vector)
   for learner in learners
     fit!(learner, instances, labels)
   end
-  ve.model = { :learners => learners }
+  ve.model[:impl] = { :learners => learners }
+
+  return ve
 end
 
 function transform!(ve::VoteEnsemble, instances::Matrix)
   # Make learners vote
-  learners = ve.options[:learners]
+  learners = ve.model[:impl][:learners]
   predictions = map(learner -> transform!(learner, instances), learners)
   # Return majority vote prediction
   return StatsBase.mode(predictions)
@@ -55,8 +57,8 @@ end
 
 # Ensemble where a 'stack' learner learns on a set of learners' predictions.
 type StackEnsemble <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function StackEnsemble(options=Dict())
     default_options = {    
@@ -72,7 +74,7 @@ type StackEnsemble <: Learner
       # Provide original features on top of learner outputs to stacker.
       :keep_original_features => false
     }
-    new(nothing, nested_dict_merge(default_options, options)) 
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -109,20 +111,22 @@ function fit!(se::StackEnsemble, instances::Matrix, labels::Vector)
   fit!(stacker, stacker_instances, stack_labels)
   
   # Build model
-  se.model = {
+  se.model[:impl] = {
     :learners => learners, 
     :stacker => stacker, 
     :label_map => label_map, 
     :keep_original_features => keep_original_features
   }
+
+  return se
 end
 
 function transform!(se::StackEnsemble, instances::Matrix)
   # Build stacker instances
-  learners = se.model[:learners]
-  stacker = se.model[:stacker]
-  label_map = se.model[:label_map]
-  keep_original_features = se.model[:keep_original_features]
+  learners = se.model[:impl][:learners]
+  stacker = se.model[:impl][:stacker]
+  label_map = se.model[:impl][:label_map]
+  keep_original_features = se.model[:impl][:keep_original_features]
   stacker_instances = build_stacker_instances(
     learners, instances, label_map, keep_original_features
   )
@@ -165,8 +169,8 @@ end
 # Selects best learner out of set. 
 # Will perform a grid search on learners if options grid is provided.
 type BestLearner <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function BestLearner(options=Dict())
     default_options = {
@@ -188,7 +192,7 @@ type BestLearner <: Learner
       # with a list of values instead of scalar.
       :learner_options_grid => nothing
     }
-    new(nothing, nested_dict_merge(default_options, options)) 
+    new(Dict(), nested_dict_merge(default_options, options)) 
   end
 end
 
@@ -264,16 +268,18 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
   fit!(best_learner, instances, labels)
   
   # Create model
-  bls.model = {
+  bls.model[:impl] = {
     :best_learner => best_learner,
     :best_learner_index => best_learner_index,
     :learners => learners,
     :learner_partition_scores => learner_partition_scores
   }
+
+  return bls
 end
 
 function transform!(bls::BestLearner, instances::Matrix)
-  transform!(bls.model[:best_learner], instances)
+  transform!(bls.model[:impl][:best_learner], instances)
 end
 
 end # module

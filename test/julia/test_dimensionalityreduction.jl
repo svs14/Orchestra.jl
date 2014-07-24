@@ -22,7 +22,8 @@ facts("DimensionalityReduction transformers") do
     fit!(pca, instances, labels)
     transformed = transform!(pca, instances)
 
-    @fact true => maximum(instances - transformed * pca.model.rotation') < 10e-4
+    @fact true => 
+      maximum(instances - transformed * pca.model[:impl].rotation') < 10e-4
   end
 end
 

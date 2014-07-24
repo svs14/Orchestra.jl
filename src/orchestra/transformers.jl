@@ -14,8 +14,8 @@ export OneHotEncoder,
 # Transforms instances with nominal features into one-hot form 
 # and coerces the instance matrix to be of element type Float64.
 type OneHotEncoder <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function OneHotEncoder(options=Dict())
     default_options = {
@@ -25,7 +25,7 @@ type OneHotEncoder <: Transformer
       # possible values for that column.
       :nominal_column_values_map => nothing
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -46,15 +46,17 @@ function fit!(ohe::OneHotEncoder, instances::Matrix, labels::Vector)
   end
 
   # Create model
-  ohe.model = {
+  ohe.model[:impl] = {
     :nominal_columns => nominal_columns,
     :nominal_column_values_map => nominal_column_values_map
   }
+
+  return ohe
 end
 
 function transform!(ohe::OneHotEncoder, instances::Matrix)
-  nominal_columns = ohe.model[:nominal_columns]
-  nominal_column_values_map = ohe.model[:nominal_column_values_map]
+  nominal_columns = ohe.model[:impl][:nominal_columns]
+  nominal_column_values_map = ohe.model[:impl][:nominal_column_values_map]
 
   # Create new transformed instance matrix of type Float64
   num_rows = size(instances, 1)
@@ -109,8 +111,8 @@ end
 
 # Imputes NaN values from Float64 features.
 type Imputer <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function Imputer(options=Dict())
     default_options = {
@@ -118,17 +120,19 @@ type Imputer <: Transformer
       # Statistic that takes a vector such as mean or median.
       :strategy => mean
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
 function fit!(imp::Imputer, instances::Matrix, labels::Vector)
-  imp.model = imp.options
+  imp.model[:impl] = imp.options
+
+  return imp
 end
 
 function transform!(imp::Imputer, instances::Matrix)
   new_instances = copy(instances)
-  strategy = imp.model[:strategy]
+  strategy = imp.model[:impl][:strategy]
 
   for column in 1:size(instances, 2)
     column_values = instances[:, column]
@@ -149,8 +153,8 @@ end
 
 # Chains multiple transformers in sequence.
 type Pipeline <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function Pipeline(options=Dict())
     default_options = {
@@ -159,7 +163,7 @@ type Pipeline <: Transformer
       # Transformer options as list applied to same index transformer.
       :transformer_options => nothing
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -176,14 +180,16 @@ function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
     current_instances = transform!(transformer, current_instances)
   end
 
-  pipe.model = {
-      :transformers => new_transformers,
-      :transformer_options => transformer_options
+  pipe.model[:impl] = {
+    :transformers => new_transformers,
+    :transformer_options => transformer_options
   }
+
+  return pipe
 end
 
 function transform!(pipe::Pipeline, instances::Matrix)
-  transformers = pipe.model[:transformers]
+  transformers = pipe.model[:impl][:transformers]
 
   current_instances = instances
   for t_index in 1:length(transformers)
@@ -197,8 +203,8 @@ end
 
 # Wraps around an Orchestra transformer.
 type Wrapper <: Transformer
-  model
-  options
+  model::Dict
+  options::Dict
 
   function Wrapper(options=Dict())
     default_options = {
@@ -207,7 +213,7 @@ type Wrapper <: Transformer
       # Transformer options.
       :transformer_options => nothing
     }
-    new(nothing, nested_dict_merge(default_options, options))
+    new(Dict(), nested_dict_merge(default_options, options))
   end
 end
 
@@ -224,14 +230,16 @@ function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
   end
   fit!(transformer, instances, labels)
 
-  wrapper.model = {
+  wrapper.model[:impl] = {
     :transformer => transformer,
     :transformer_options => transformer_options
   }
+
+  return wrapper
 end
 
 function transform!(wrapper::Wrapper, instances::Matrix)
-  transformer = wrapper.model[:transformer]
+  transformer = wrapper.model[:impl][:transformer]
   return transform!(transformer, instances)
 end
 

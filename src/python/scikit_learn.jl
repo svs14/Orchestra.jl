@@ -68,8 +68,8 @@ learner_dict = {
 #   - "DecisionTreeClassifier"
 #
 type SKLLearner <: Learner
-  model
-  options
+  model::Dict
+  options::Dict
   
   function SKLLearner(options=Dict())
     default_options = {
@@ -80,7 +80,7 @@ type SKLLearner <: Learner
       # Options specific to this implementation.
       :impl_options => Dict()
     }
-    new(nothing, nested_dict_merge(default_options, options)) 
+    new(Dict(), nested_dict_merge(default_options, options)) 
   end
 end
 
@@ -97,12 +97,14 @@ function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   end
 
   # Train
-  sklw.model = py_learner(;impl_options...)
-  sklw.model[:fit](instances, labels)
+  sklw.model[:impl] = py_learner(;impl_options...)
+  sklw.model[:impl][:fit](instances, labels)
+
+  return sklw
 end
 
 function transform!(sklw::SKLLearner, instances::Matrix)
-  return collect(sklw.model[:predict](instances))
+  return collect(sklw.model[:impl][:predict](instances))
 end
 
 end # module
