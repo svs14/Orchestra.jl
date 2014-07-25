@@ -6,3 +6,4 @@ StatsBase 0.6-
 PyCall 0.4-
 DimensionalityReduction 0.1-
 Iterators 0.1-
+DataFrames 0.5-

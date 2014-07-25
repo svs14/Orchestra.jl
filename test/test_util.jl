@@ -2,12 +2,22 @@ module TestUtil
 
 using FactCheck
 
-
+importall Orchestra.Types
 importall Orchestra.Util
 
-include("fixture_learners.jl")
-using .FixtureLearners
-nfcp = NumericFeatureClassification()
+# NOTE(svs14): Decoupled from module FixtureLearners if we do define this.
+type StubLearner <: TestLearner
+  model
+  options
+
+  function StubLearner(options=Dict())
+    default_options = {
+      :output => :class,
+      :label => nothing
+    }
+    new(nothing, nested_dict_merge(default_options, options))
+  end
+end
 
 facts("Orchestra util functions") do
   context("holdout returns proportional partitions") do
@@ -31,28 +41,34 @@ facts("Orchestra util functions") do
   end
 
   context("score calculates accuracy") do
-    learner = PerfectScoreLearner({:problem => nfcp})
-    predictions = fit_and_transform!(learner, nfcp)
-
     @fact score(
-      :accuracy, nfcp.test_labels, predictions
+      :accuracy, ["a", "b", "b"], ["a", "b", "b"]
     ) => 100.0
+    @fact score(
+      :accuracy, ["a", "b", "b"], ["b", "b", "b"]
+    ) => not(100.0)
   end
-  context("score throws exception on unknown metric") do
-    learner = PerfectScoreLearner({:problem => nfcp})
-    predictions = fit_and_transform!(learner, nfcp)
 
+  context("score throws exception on unknown metric") do
     @fact_throws score(
-      :fake, nfcp.test_labels, predictions
+      :fake, ["a"], ["a"]
     )
   end
 
   context("infer_eltype returns inferred elements type") do
-    vector = [1,2,3,"a"]
-    @fact infer_eltype(vector[1:3]) => Int
+    vector = {1,2,3.0,"a"}
+    @fact infer_eltype(vector[1:3]) => Real
   end
 
-  context("nested_dict_to_tuples produces list of tuples") do
+  context("infer_eltype returns empty collection's type") do
+    vector = Int[]
+    @fact infer_eltype(vector) => Int
+
+    vector = []
+    @fact infer_eltype(vector) => None
+  end
+
+  context("nested_dict_to_tuples produces set of tuples") do
     nested_dict = {
       :a => [1,2],
       :b => {
@@ -97,14 +113,16 @@ facts("Orchestra util functions") do
     second = {
       :a => 4,
       :b => {
-        :d => 5
+        :d => 5,
+        :e => 6
       }
     }
     expected = {
       :a => 4,
       :b => {
         :c => 2,
-        :d => 5
+        :d => 5,
+        :e => 6
       }
     }
     actual = nested_dict_merge(first, second)
@@ -113,7 +131,7 @@ facts("Orchestra util functions") do
   end
 
   context("create_transformer produces new transformer") do
-    learner = AlwaysSameLabelLearner({:label => :a})
+    learner = StubLearner({:label => :a})
     new_options = {:label => :b}
     new_learner = create_transformer(learner, new_options)
 

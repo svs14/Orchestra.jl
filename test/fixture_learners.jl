@@ -1,59 +1,118 @@
 module FixtureLearners
 
+import DataFrames: DataArray, DataFrame, complete_cases
+import MLBase: labelmap, labelencode
+
 importall Orchestra.Types
 importall Orchestra.Util
+importall Orchestra.Conversion
 
 export MLProblem,
-       Classification,
-       FeatureClassification,
-       NumericFeatureClassification,
        PerfectScoreLearner,
        AlwaysSameLabelLearner,
        fit_and_transform!,
        fit!,
        transform!
-       
-abstract MLProblem
-abstract Classification <: MLProblem
 
 # NOTE(svs14): Currently hardcoded example. 
 #              Consider turning into rule-based generator.
 train_dataset = [
-  1.0        1 "b"  2 "c" "a";
-  2.0        2 "b"  3 "c" "a";
-  nan(3.0)   3 "b"  4 "c" "a";
-  -1.0      -1 "d" -2 "c" "b";
-  -2.0      -2 "d" -3 "c" "b";
-  nan(-3.0) -3 "d" -4 "c" "b";
-  1.0        1 "a"  1 "a" "c";
-  2.0        2 "b"  2 "b" "c";
-  nan(3.0)   3 "c"  3 "c" "c";
-  0.0        0 "e"  1 "a" "d";
-  0.0        0 "e"  2 "b" "d";
-  nan(0.0)   0 "e"  3 "c" "d";
+  1.0        1.0 "b"  2.0 "c" "a" -13.0;
+  2.0        2.0 "b"  3.0 "c" "a" -9.0;
+  nan(3.0)   3.0 "b"  4.0 "c" "a" -8.0;
+  -1.0      -1.0 "d" -2.0 "c" "b" -3.0;
+  -2.0      -2.0 "d" -3.0 "c" "b" 1.0;
+  nan(-3.0) -3.0 "d" -4.0 "c" "b" 2.0;
+  1.0        1.0 "a"  1.0 "a" "c" 17.0;
+  2.0        2.0 "b"  2.0 "b" "c" 21.0;
+  nan(3.0)   3.0 "c"  3.0 "c" "c" 22.0;
+  0.0        0.0 "e"  1.0 "a" "d" 57.0;
+  0.0        0.0 "e"  2.0 "b" "d" 61.0;
+  nan(0.0)   0.0 "e"  3.0 "c" "d" 62.0;
 ]
 test_dataset = [
-  4.0        4 "b"  5 "c" "a";
-  nan(5.0)   5 "b"  6 "c" "a";
-  -4.0      -4 "d" -5 "c" "b";
-  nan(-5.0) -5 "d" -6 "c" "b";
-  4.0        4 "d"  4 "d" "c";
-  nan(5.0)   5 "e"  5 "e" "c";
-  0.0        0 "e"  4 "d" "d";
-  nan(0.0)   0 "e"  5 "e" "d";
+  4.0        4.0 "b"  5.0 "c" "a" -11.0;
+  nan(4.0)   5.0 "b"  6.0 "c" "a" -9.0;
+  -4.0      -4.0 "d" -5.0 "c" "b" -1.0;
+  nan(-4.0) -5.0 "d" -6.0 "c" "b" 1.0;
+  4.0        4.0 "d"  4.0 "d" "c" 19.0;
+  nan(4.0)   5.0 "e"  5.0 "e" "c" 21.0;
+  0.0        0.0 "e"  4.0 "d" "d" 59.0;
+  nan(0.0)   0.0 "e"  5.0 "e" "d" 61.0;
 ]
 
-type FeatureClassification <: Classification
-  train_instances::Matrix
-  test_instances::Matrix
-  train_labels::Vector
-  test_labels::Vector
+# Defines a given ML problem with associated fixture.
+type MLProblem
+  train_instances
+  test_instances
+  train_labels
+  test_labels
 
-  function FeatureClassification()
-    train_instances = train_dataset[:, 1:end-1]
-    test_instances = test_dataset[:, 1:end-1]
-    train_labels = train_dataset[:, end]
-    test_labels = test_dataset[:, end]
+  function MLProblem(;output=:class,
+    feature_type=Any, label_type=Any,
+    handle_na=false, dataset_type=Matrix{Float64})
+
+    # Build instances
+    train_instances = orchestra_convert(DataFrame, train_dataset[:, 1:end-2])
+    test_instances = orchestra_convert(DataFrame, test_dataset[:, 1:end-2])
+    if feature_type == Any
+      nothing
+    elseif feature_type == Float64
+      train_instances = train_instances[:, [2, 4]]
+      test_instances = test_instances[:, [2, 4]]
+    end
+    if !handle_na
+      train_instances = train_instances[complete_cases(train_instances), :]
+      test_instances = test_instances[complete_cases(test_instances), :]
+    end
+
+    # Build labels
+    if output == :class
+      if label_type == Any
+        train_labels = orchestra_convert(DataArray, train_dataset[:, end-1])
+        test_labels = orchestra_convert(DataArray, test_dataset[:, end-1])
+      elseif label_type == Float64
+        lm = labelmap(vcat(train_dataset[:, end-1], test_dataset[:, end-1]))
+        train_labels = orchestra_convert(
+          DataArray,
+          labelencode(lm, train_dataset[:, end-1])
+        )
+        test_labels = orchestra_convert(
+          DataArray,
+          labelencode(lm, test_dataset[:, end-1])
+        )
+      end
+    elseif output == :regression
+      if label_type == Any
+        train_labels = orchestra_convert(DataArray, train_dataset[:, end])
+        test_labels = orchestra_convert(DataArray, test_dataset[:, end])
+      elseif label_type == Float64
+        train_labels = orchestra_convert(
+          DataArray,
+          convert(Vector{Float64}, train_dataset[:, end])
+        )
+        test_labels = orchestra_convert(
+          DataArray,
+          convert(Vector{Float64}, test_dataset[:, end])
+        )
+      end
+    end
+
+    # Convert dataset into required type
+    if dataset_type == DataFrame
+      nothing
+    elseif dataset_type == Matrix{Float64}
+      train_instances = orchestra_convert(Matrix{Float64}, train_instances)
+      test_instances = orchestra_convert(Matrix{Float64}, test_instances)
+      train_labels = orchestra_convert(Vector{Float64}, train_labels)
+      test_labels = orchestra_convert(Vector{Float64}, test_labels)
+    elseif dataset_type == Matrix
+      train_instances = orchestra_convert(Matrix, train_instances)
+      test_instances = orchestra_convert(Matrix, test_instances)
+      train_labels = orchestra_convert(Vector, train_labels)
+      test_labels = orchestra_convert(Vector, test_labels)
+    end
+
     new(
       train_instances,
       test_instances,
@@ -63,41 +122,31 @@ type FeatureClassification <: Classification
   end
 end
 
-type NumericFeatureClassification <: Classification
-  train_instances::Matrix
-  test_instances::Matrix
-  train_labels::Vector
-  test_labels::Vector
-
-  function NumericFeatureClassification()
-    train_instances = convert(Array{Real, 2}, train_dataset[:, [2,4]])
-    test_instances = convert(Array{Real, 2}, test_dataset[:, [2,4]])
-    train_labels = convert(Array{String, 1}, train_dataset[:, end])
-    test_labels = convert(Array{String, 1}, test_dataset[:, end])
-    new(
-      train_instances,
-      test_instances,
-      train_labels,
-      test_labels
-    ) 
-  end
-end
-
+# Methods for transformations
 
 function fit_and_transform!(transformer::Transformer, problem::MLProblem, seed=1)
-    srand(seed)
-    fit!(transformer, problem.train_instances, problem.train_labels)
-    return transform!(transformer, problem.test_instances)
+  srand(seed)
+  fit!(transformer, problem.train_instances, problem.train_labels)
+  return transform!(transformer, problem.test_instances)
 end
+
+# Test Learners
 
 type PerfectScoreLearner <: TestLearner
   model
   options
 
   function PerfectScoreLearner(options=Dict())
+    nfcp = MLProblem(;
+      output = :class,
+      feature_type = Float64,
+      label_type = Any,
+      handle_na = false,
+      dataset_type = Matrix
+    )
     default_options = {
       :output => :class,
-      :problem => NumericFeatureClassification()
+      :problem => nfcp
     }
     new(nothing, nested_dict_merge(default_options, options))
   end

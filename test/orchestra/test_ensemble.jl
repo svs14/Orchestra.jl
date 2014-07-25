@@ -2,7 +2,13 @@ module TestEnsembleMethods
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
-nfcp = NumericFeatureClassification()
+nfcp = MLProblem(;
+  output = :class,
+  feature_type = Float64,
+  label_type = Any,
+  handle_na = false,
+  dataset_type = Matrix
+)
 
 using FactCheck
 

@@ -53,34 +53,31 @@ function score(metric::Symbol, actual, predicted)
   end
 end
 
-# Returns element type of vector unless it is Any.
-# If Any, returns the most specific type that can be
-# inferred from the vector elements.
+# Returns inferred element type of vector.
+# If it cannot be determined, will return collection's element type.
 #
-# @param vector Vector to infer element type on.
+# @param ar Array to infer element type on.
 # @return Inferred element type.
-function infer_eltype(vector::Vector)
-  # Obtain element type of vector
-  vec_eltype = eltype(vector)
+function infer_eltype(ar::Vector)
+  # Determine element type by reduction loop
+  el_type = None
+  for el in ar
+    el_type = typejoin(el_type, typeof(el))
+  end
 
-  # If element type of Vector is Any and not empty,
-  # and all elements are of the same type,
-  # then return the vector elements' type.
-  if vec_eltype == Any && !isempty(vector)
-    all_elements_same_type = all(x -> typeof(x) == typeof(first(vector)), vector)
-    if all_elements_same_type
-      vec_eltype = typeof(first(vector))
-    end
+  # If element type cannot be determined, go with collection's element type
+  if el_type == None
+    el_type = eltype(ar)
   end
 
   # Return inferred element type
-  return vec_eltype
+  return el_type
 end
 
-# Converts nested dictionary to list of tuples
+# Converts nested dictionary to set of tuples
 #
 # @param dict Dictionary that can have other dictionaries as values.
-# @return List where elements are ([outer-key, inner-key, ...], value).
+# @return Set where elements are ([outer-key, inner-key, ...], value).
 function nested_dict_to_tuples(dict::Dict)
   set = Set()
   for (entry_id, entry_val) in dict

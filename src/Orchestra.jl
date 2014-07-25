@@ -5,6 +5,7 @@ module Orchestra
 include("system.jl")
 include("types.jl")
 include("util.jl")
+include("conversion.jl")
 include("transformers.jl")
 
 end # module

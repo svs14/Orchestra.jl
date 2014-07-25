@@ -8,8 +8,20 @@ importall Orchestra.Util
 
 include("fixture_learners.jl")
 using .FixtureLearners
-nfcp = NumericFeatureClassification()
-fcp = FeatureClassification()
+fcp = MLProblem(;
+  output = :class,
+  feature_type = Any,
+  label_type = Any,
+  handle_na = true,
+  dataset_type = Matrix
+)
+nfcp = MLProblem(;
+  output = :class,
+  feature_type = Float64,
+  label_type = Any,
+  handle_na = false,
+  dataset_type = Matrix
+)
 
 function all_concrete_subtypes(a_type::Type)
   a_subtypes = Type[]

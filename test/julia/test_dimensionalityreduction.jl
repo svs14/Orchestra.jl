@@ -2,7 +2,13 @@ module TestDimensionalityReductionWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
-fcp = FeatureClassification()
+fcp = MLProblem(;
+  output = :class,
+  feature_type = Any,
+  label_type = Any,
+  handle_na = true,
+  dataset_type = Matrix
+)
 
 using FactCheck
 
