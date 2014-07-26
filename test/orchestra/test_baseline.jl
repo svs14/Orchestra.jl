@@ -2,19 +2,12 @@ module TestBaselineMethods
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
-fcp = MLProblem(;
-  output = :class,
-  feature_type = Any,
-  label_type = Any,
-  handle_na = true,
-  dataset_type = Matrix
-)
 nfcp = MLProblem(;
   output = :class,
   feature_type = Float64,
-  label_type = Any,
+  label_type = Float64,
   handle_na = false,
-  dataset_type = Matrix
+  dataset_type = Matrix{Float64}
 )
 
 using FactCheck
@@ -25,15 +18,15 @@ importall Orchestra.Transformers.BaselineMethods
 facts("Baseline transformers") do
   context("Baseline learner does simple transforms") do
     bl = Baseline()
-    instances = [
+    instances = Float64[
       1 1;
       1 2;
       2 2;
     ]
-    labels = ["a"; "a"; "b"]
+    labels = Float64[1.0; 1.0; 2.0]
     fit!(bl, instances, labels)
     transformed = transform!(bl, instances)
-    expected_transformed = ["a"; "a"; "a"]
+    expected_transformed = Float64[1.0; 1.0; 1.0]
 
     @fact transformed => expected_transformed
   end

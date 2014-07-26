@@ -4,6 +4,7 @@ module CaretWrapper
 importall Orchestra.Types
 importall Orchestra.Util
 
+# Setup R
 using PyCall
 @pyimport rpy2.robjects as RO
 @pyimport rpy2.robjects.packages as RP
@@ -15,41 +16,24 @@ export CRTLearner,
        fit!,
        transform!
 
-# Convert vector to R equivalent.
-vector_to_r{T<:Int}(vector::Vector{T}) = RO.IntVector(vector)
-vector_to_r{T<:Real}(vector::Vector{T}) = RO.FloatVector(vector)
-vector_to_r{T<:Bool}(vector::Vector{T}) = RO.BoolVector(vector)
-vector_to_r{T<:String}(vector::Vector{T}) = RO.StrVector(vector)
-function vector_to_r(vector::Vector{Any})
-  vec_eltype = infer_eltype(vector)
-  if vec_eltype == Any
-    error("Cannot handle R conversion for vector with differing element types.")
-  end
-
-  return vector_to_r(convert(Vector{vec_eltype}, vector))
-end
-vector_to_r(vector::Vector) = error(
-  "Cannot handle R conversion for $(typeof(vector))."
-)
-
 
 # Builds R dataframe out of dataset.
 # Returns (dataframe, label_factor_levels).
 function dataset_to_r_dataframe(
-  instances::Matrix, labels=nothing)
+  instances::Matrix{Float64}; labels=nothing)
 
   # Build dataframe
   df_dict = Dict()
   for col in 1:size(instances, 2)
-    df_dict["X$col"] = vector_to_r(instances[:, col])
+    df_dict["X$col"] = RO.FloatVector(instances[:, col])
   end
 
-  if labels != nothing
+  if labels == nothing
+    return (RO.DataFrame(df_dict), nothing)
+  else
     r_labels = RO.FactorVector(labels)
     df_dict["Y"] = r_labels
     return (RO.DataFrame(df_dict), r_labels[:levels])
-  else
-    return (RO.DataFrame(df_dict), nothing) 
   end
 end
 
@@ -74,23 +58,29 @@ type CRTLearner <: Learner
   end
 end
 
-function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
+function fit!(crtw::CRTLearner,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   impl_options = crtw.options[:impl_options]
   crtw.model[:impl] = Dict()
   crtw.model[:impl][:learner] = crtw.options[:learner]
 
   # Build R dataframe out of dataset
-  (r_dataset_df, label_factors) = dataset_to_r_dataframe(instances, labels)
+  r_dataset_df, r_label_factors = dataset_to_r_dataframe(
+    instances; labels=labels
+  )
 
   # Assign label factors
-  crtw.model[:impl][:label_factors] = collect(label_factors)
+  crtw.model[:impl][:label_factors] = Float64[
+    parsefloat(lf) for lf in collect(r_label_factors)
+  ]
 
-  # Train model
   caret_formula = RO.Formula("Y ~ .")
   r_fit_control = pycall(RO.r[:trainControl], PyObject,
     method = "none"
   )
   if isempty(impl_options)
+    # Train with default (no grid search)
     r_model = pycall(RO.r[:train], PyObject,
       caret_formula,
       method = crtw.model[:impl][:learner],
@@ -99,6 +89,7 @@ function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
       tuneLength = 1
     )
   else
+    # Train with specified learner parameters
     r_model = pycall(RO.r[:train], PyObject,
       caret_formula,
       method = crtw.model[:impl][:learner],
@@ -112,14 +103,15 @@ function fit!(crtw::CRTLearner, instances::Matrix, labels::Vector)
   return crtw
 end
 
-function transform!(crtw::CRTLearner, instances::Matrix)
-  (r_instance_df, _) = dataset_to_r_dataframe(instances)
+function transform!(crtw::CRTLearner, instances::Matrix{Float64})
+  r_instance_df, _ = dataset_to_r_dataframe(instances)
   predictions = collect(pycall(RO.r[:predict], PyObject,
     crtw.model[:impl][:r_model],
     newdata = r_instance_df
   ))
   label_factors = crtw.model[:impl][:label_factors]
-  predictions = map(x -> label_factors[x], predictions)
+  predictions = [label_factors[x] for x in predictions]
+
   return predictions
 end
 

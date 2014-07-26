@@ -29,14 +29,14 @@ type PCA <: Transformer
   end
 end
 
-function fit!(p::PCA, instances::Matrix, labels::Vector)
+function fit!(p::PCA,instances::Matrix{Float64}, labels::Vector{Float64})
   pca_model = pca(instances; p.options...)
   p.model[:impl] = pca_model
 
   return p
 end
 
-function transform!(p::PCA, instances::Matrix)
+function transform!(p::PCA, instances::Matrix{Float64})
   return instances * p.model[:impl].rotation
 end
 

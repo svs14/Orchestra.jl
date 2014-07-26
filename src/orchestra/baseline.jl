@@ -28,13 +28,13 @@ type Baseline <: Learner
   end
 end
 
-function fit!(bl::Baseline, instances::Matrix, labels::Vector)
+function fit!(bl::Baseline, instances::Matrix{Float64}, labels::Vector{Float64})
   bl.model[:impl] = bl.options[:strategy](labels)
 
   return bl
 end
 
-function transform!(bl::Baseline, instances::Matrix)
+function transform!(bl::Baseline, instances::Matrix{Float64})
   return fill(bl.model[:impl], size(instances, 1))
 end
 
@@ -50,11 +50,11 @@ type Identity <: Transformer
   end
 end
 
-function fit!(id::Identity, instances::Matrix, labels::Vector)
+function fit!(id::Identity, instances::Matrix{Float64}, labels::Vector{Float64})
   return id
 end
 
-function transform!(id::Identity, instances::Matrix)
+function transform!(id::Identity, instances::Matrix{Float64})
   return instances
 end
 

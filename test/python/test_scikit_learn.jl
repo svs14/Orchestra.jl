@@ -5,9 +5,9 @@ using .FixtureLearners
 nfcp = MLProblem(;
   output = :class,
   feature_type = Float64,
-  label_type = Any,
+  label_type = Float64,
   handle_na = false,
-  dataset_type = Matrix
+  dataset_type = Matrix{Float64}
 )
 
 using FactCheck

@@ -36,7 +36,9 @@ type VoteEnsemble <: Learner
   end
 end
 
-function fit!(ve::VoteEnsemble, instances::Matrix, labels::Vector)
+function fit!(ve::VoteEnsemble,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   # Train all learners
   learners = ve.options[:learners]
   for learner in learners
@@ -47,7 +49,7 @@ function fit!(ve::VoteEnsemble, instances::Matrix, labels::Vector)
   return ve
 end
 
-function transform!(ve::VoteEnsemble, instances::Matrix)
+function transform!(ve::VoteEnsemble, instances::Matrix{Float64})
   # Make learners vote
   learners = ve.model[:impl][:learners]
   predictions = map(learner -> transform!(learner, instances), learners)
@@ -78,7 +80,9 @@ type StackEnsemble <: Learner
   end
 end
 
-function fit!(se::StackEnsemble, instances::Matrix, labels::Vector)
+function fit!(se::StackEnsemble,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   learners = se.options[:learners]
   num_learners = size(learners, 1)
   num_instances = size(instances, 1)
@@ -121,7 +125,7 @@ function fit!(se::StackEnsemble, instances::Matrix, labels::Vector)
   return se
 end
 
-function transform!(se::StackEnsemble, instances::Matrix)
+function transform!(se::StackEnsemble, instances::Matrix{Float64})
   # Build stacker instances
   learners = se.model[:impl][:learners]
   stacker = se.model[:impl][:stacker]
@@ -137,7 +141,7 @@ end
 
 # Build stacker instances.
 function build_stacker_instances{T<:Learner}(
-  learners::Vector{T}, instances::Matrix, 
+  learners::Vector{T}, instances::Matrix{Float64},
   label_map, keep_original_features=false)
 
   # Build empty stacker instance space
@@ -196,7 +200,9 @@ type BestLearner <: Learner
   end
 end
 
-function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
+function fit!(bls::BestLearner,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   # Obtain learners as is if no options grid present 
   if bls.options[:learner_options_grid] == nothing
     learners = bls.options[:learners]
@@ -278,7 +284,7 @@ function fit!(bls::BestLearner, instances::Matrix, labels::Vector)
   return bls
 end
 
-function transform!(bls::BestLearner, instances::Matrix)
+function transform!(bls::BestLearner, instances::Matrix{Float64})
   transform!(bls.model[:impl][:best_learner], instances)
 end
 

@@ -27,7 +27,9 @@ type StandardScaler <: Transformer
   end
 end
 
-function fit!(st::StandardScaler, instances::Matrix, labels::Vector)
+function fit!(st::StandardScaler,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   st_transform = estimate(Standardize, instances'; st.options...)
   st.model[:impl] = {
     :standardize_transform => st_transform
@@ -36,7 +38,7 @@ function fit!(st::StandardScaler, instances::Matrix, labels::Vector)
   return st
 end
 
-function transform!(st::StandardScaler, instances::Matrix)
+function transform!(st::StandardScaler, instances::Matrix{Float64})
   st_transform = st.model[:impl][:standardize_transform]
   transposed_instances = instances'
   return transform(st_transform, transposed_instances)'

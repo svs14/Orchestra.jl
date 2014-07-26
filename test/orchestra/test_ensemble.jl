@@ -5,9 +5,9 @@ using .FixtureLearners
 nfcp = MLProblem(;
   output = :class,
   feature_type = Float64,
-  label_type = Any,
+  label_type = Float64,
   handle_na = false,
-  dataset_type = Matrix
+  dataset_type = Matrix{Float64}
 )
 
 using FactCheck
@@ -21,18 +21,18 @@ import Orchestra.Transformers.DecisionTreeWrapper: DecisionStumpAdaboost
 
 facts("Ensemble learners") do
   context("VoteEnsemble predicts according to majority") do
-    always_a_options = { :label => "a" }
-    always_b_options = { :label => "b" }
+    always_1_options = { :label => 1.0 }
+    always_2_options = { :label => 2.0 }
     learner = VoteEnsemble({
       :learners => [
-        AlwaysSameLabelLearner(always_a_options),
-        AlwaysSameLabelLearner(always_a_options),
-        AlwaysSameLabelLearner(always_b_options)
+        AlwaysSameLabelLearner(always_1_options),
+        AlwaysSameLabelLearner(always_1_options),
+        AlwaysSameLabelLearner(always_2_options)
       ]
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
     predictions = transform!(learner, nfcp.test_instances)
-    expected_predictions = fill("a", size(nfcp.test_instances, 1))
+    expected_predictions = fill(1.0, size(nfcp.test_instances, 1))
 
     @fact predictions => expected_predictions
   end
@@ -41,30 +41,30 @@ facts("Ensemble learners") do
     # Fix random seed, due to stochasticity in stacker.
     srand(2)
 
-    always_a_options = { :label => "a" }
+    always_1_options = { :label => 1.0 }
     learner = StackEnsemble({
       :learners => [
-        AlwaysSameLabelLearner(always_a_options),
-        AlwaysSameLabelLearner(always_a_options),
+        AlwaysSameLabelLearner(always_1_options),
+        AlwaysSameLabelLearner(always_1_options),
         PerfectScoreLearner()
       ],
       :keep_original_features => true
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)
     predictions = transform!(learner, nfcp.test_instances)
-    unexpected_predictions = fill("a", size(nfcp.test_instances, 1))
+    unexpected_predictions = fill(1.0, size(nfcp.test_instances, 1))
 
     @fact predictions => not(unexpected_predictions)
   end
 
   context("BestLearner picks the best learner") do
-    always_a_options = { :label => "a" }
-    always_b_options = { :label => "b" }
+    always_1_options = { :label => 1.0 }
+    always_2_options = { :label => 2.0 }
     learner = BestLearner({
       :learners => [
-        AlwaysSameLabelLearner(always_a_options),
+        AlwaysSameLabelLearner(always_1_options),
         PerfectScoreLearner(),
-        AlwaysSameLabelLearner(always_b_options)
+        AlwaysSameLabelLearner(always_2_options)
       ]
     })
     fit!(learner, nfcp.train_instances, nfcp.train_labels)

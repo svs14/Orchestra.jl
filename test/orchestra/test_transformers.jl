@@ -2,20 +2,6 @@ module TestOrchestraTransformers
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
-fcp = MLProblem(;
-  output = :class,
-  feature_type = Any,
-  label_type = Any,
-  handle_na = true,
-  dataset_type = Matrix
-)
-nfcp = MLProblem(;
-  output = :class,
-  feature_type = Float64,
-  label_type = Any,
-  handle_na = false,
-  dataset_type = Matrix
-)
 
 using FactCheck
 
@@ -23,57 +9,83 @@ using FactCheck
 importall Orchestra.Transformers.OrchestraTransformers
 
 facts("Orchestra transformers") do
-  context("OneHotEncoder transforms nominal features") do
-    instances = [
-      2 "a" 1 "c";
-      1 "b" 2 "d";
+  context("OneHotEncoder transforms with nominal columns option") do
+    instances = Float64[
+      2 1 1 3;
+      1 2 2 4;
     ]
-    labels = [
-      "y";
-      "z";
+    labels = Float64[
+      1;
+      2;
     ]
-    expected_transformed = [
+    expected_transformed = Float64[
       2 1 0 1 1 0;
       1 0 1 2 0 1;
     ]
+    encoder = OneHotEncoder({:nominal_columns => [2, 4]})
+    fit!(encoder, instances, labels)
+    transformed = transform!(encoder, instances)
+
+    @fact transformed => expected_transformed
+  end
+  context("OneHotEncoder transforms with all options") do
+    instances = Float64[
+      2 1 1 3;
+      1 2 2 4;
+    ]
+    labels = Float64[
+      1;
+      2;
+    ]
+    expected_transformed = Float64[
+      2 1 0 0 1 1 0;
+      1 0 1 0 2 0 1;
+    ]
+
+    nominal_columns = [2, 4]
+    nominal_column_values_map = {
+      2 => [1, 2, 3],
+      4 => [3, 4]
+    }
+    encoder = OneHotEncoder({
+      :nominal_columns => nominal_columns,
+      :nominal_column_values_map => nominal_column_values_map
+    })
+    fit!(encoder, instances, labels)
+    transformed = transform!(encoder, instances)
+
+    @fact transformed => expected_transformed
+  end
+  context("OneHotEncoder handles without options") do
+    instances = Float64[
+      2 1 1 3;
+      1 2 2 4;
+    ]
+    labels = Float64[
+      1;
+      2;
+    ]
+    expected_transformed = Float64[
+      2 1 1 3;
+      1 2 2 4;
+    ]
+
     encoder = OneHotEncoder()
     fit!(encoder, instances, labels)
     transformed = transform!(encoder, instances)
 
     @fact transformed => expected_transformed
   end
-  context("OneHotEncoder transforms with options") do
-    nominal_columns = [3, 5]
-    nominal_column_values_map = {
-      3 => ["a", "b", "c", "d", "e"],
-      5 => ["a", "b", "c", "d", "e"]
-    }
-    encoder = OneHotEncoder({
-      :nominal_columns => nominal_columns,
-      :nominal_column_values_map => nominal_column_values_map
-    })
-    fit!(encoder, fcp.train_instances, fcp.train_labels)
-    transformed = transform!(encoder, fcp.test_instances)
-
-    @fact size(transformed, 2) => 13
-  end
-  context("OneHotEncoder handles no nominal features") do
-    encoder = OneHotEncoder()
-    fit!(encoder, nfcp.train_instances, nfcp.train_labels)
-    transformed = transform!(encoder, nfcp.test_instances)
-
-    @fact size(transformed, 2) => 2
-  end
 
   context("Imputer replaces NA") do
-    instances = [
+    instances = Float64[
       1.0      1.0;
       nan(1.0) 1.0;
       0.0      0.0;
       nan(0.0) 0.0;
     ]
-    labels = ["x";"x";"y";"y"]
-    expected_transformed = [
+    labels = Float64[1; 1; 2; 2]
+    expected_transformed = Float64[
       1.0 1.0;
       0.5 1.0;
       0.0 0.0;
@@ -87,23 +99,50 @@ facts("Orchestra transformers") do
   end
 
   context("Pipeline chains transformers") do
-    pipe = Pipeline()
-    fit!(pipe, fcp.train_instances, fcp.train_labels)
-    transformed = transform!(pipe, fcp.test_instances)
+    instances = Float64[
+      1.0      1.0;
+      nan(1.0) 1.0;
+      0.0      0.0;
+      nan(0.0) 0.0;
+    ]
+    labels = Float64[1; 1; 2; 2]
+    expected_transformed = Float64[
+      1.0 1.0;
+      0.5 1.0;
+      0.0 0.0;
+      0.5 0.0;
+    ]
 
-    @fact size(transformed, 2) => 11
-    @fact true => !any(map(x -> isnan(x), transformed))
+    pipe = Pipeline()
+    fit!(pipe, instances, labels)
+    transformed = transform!(pipe, instances)
+
+    @fact transformed => expected_transformed
+    @fact !any([isnan(x) for x in transformed]) => true
   end
 
   context("Wrapper delegates to transformer") do
+    instances = Float64[
+      2 1 1 3;
+      1 2 2 4;
+    ]
+    labels = Float64[
+      1;
+      2;
+    ]
+    expected_transformed = Float64[
+      2 1 1 3;
+      1 2 2 4;
+    ]
+
     wrapper = Wrapper({
       :transformer => OneHotEncoder(),
       :transformer_options => Dict()
     })
-    fit!(wrapper, fcp.train_instances, fcp.train_labels)
-    transformed = transform!(wrapper, fcp.test_instances)
+    fit!(wrapper, instances, labels)
+    transformed = transform!(wrapper, instances)
 
-    @fact size(transformed, 2) => 11
+    @fact transformed => expected_transformed
   end
 end
 

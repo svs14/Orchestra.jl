@@ -11,8 +11,7 @@ export OneHotEncoder,
        fit!,
        transform!
 
-# Transforms instances with nominal features into one-hot form 
-# and coerces the instance matrix to be of element type Float64.
+# Transforms instances with nominal features into one-hot form.
 type OneHotEncoder <: Transformer
   model::Dict
   options::Dict
@@ -29,17 +28,19 @@ type OneHotEncoder <: Transformer
   end
 end
 
-function fit!(ohe::OneHotEncoder, instances::Matrix, labels::Vector)
+function fit!(ohe::OneHotEncoder,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   # Obtain nominal columns
   nominal_columns = ohe.options[:nominal_columns]
   if nominal_columns == nothing
-    nominal_columns = find_nominal_columns(instances)
+    nominal_columns = Int[]
   end
 
   # Obtain unique values for each nominal column
   nominal_column_values_map = ohe.options[:nominal_column_values_map]
   if nominal_column_values_map == nothing
-    nominal_column_values_map = Dict{Int, Any}()
+    nominal_column_values_map = Dict{Int, Array}()
     for column in nominal_columns
       nominal_column_values_map[column] = unique(instances[:, column])
     end
@@ -54,7 +55,9 @@ function fit!(ohe::OneHotEncoder, instances::Matrix, labels::Vector)
   return ohe
 end
 
-function transform!(ohe::OneHotEncoder, instances::Matrix)
+function transform!(ohe::OneHotEncoder,
+  instances::Matrix{Float64})
+
   nominal_columns = ohe.model[:impl][:nominal_columns]
   nominal_column_values_map = ohe.model[:impl][:nominal_column_values_map]
 
@@ -93,21 +96,6 @@ function transform!(ohe::OneHotEncoder, instances::Matrix)
   return transformed_instances
 end
 
-# Finds all nominal columns.
-# 
-# Nominal columns are those that do not have Real type nor
-# do all their elements correspond to Real.
-function find_nominal_columns(instances::Matrix)
-  nominal_columns = Int[]
-  for column in 1:size(instances, 2)
-    col_eltype = infer_eltype(instances[:, column])
-    if !issubtype(col_eltype, Real)
-      push!(nominal_columns, column)
-    end
-  end
-  return nominal_columns
-end
-
 
 # Imputes NaN values from Float64 features.
 type Imputer <: Transformer
@@ -124,26 +112,26 @@ type Imputer <: Transformer
   end
 end
 
-function fit!(imp::Imputer, instances::Matrix, labels::Vector)
+function fit!(imp::Imputer,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   imp.model[:impl] = imp.options
 
   return imp
 end
 
-function transform!(imp::Imputer, instances::Matrix)
+function transform!(imp::Imputer, instances::Matrix{Float64})
   new_instances = copy(instances)
   strategy = imp.model[:impl][:strategy]
 
+  # Iterate through columns and impute using strategy function
   for column in 1:size(instances, 2)
     column_values = instances[:, column]
-    col_eltype = infer_eltype(column_values)
 
-    if issubtype(col_eltype, Real)
-      na_rows = map(x -> isnan(x), column_values)
-      if any(na_rows)
-        fill_value = strategy(column_values[!na_rows])
-        new_instances[na_rows, column] = fill_value
-      end
+    na_rows = [isnan(x) for x in column_values]
+    if any(na_rows)
+      fill_value = strategy(column_values[!na_rows])
+      new_instances[na_rows, column] = fill_value
     end
   end
 
@@ -167,10 +155,14 @@ type Pipeline <: Transformer
   end
 end
 
-function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
+function fit!(pipe::Pipeline,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   transformers = pipe.options[:transformers]
   transformer_options = pipe.options[:transformer_options]
 
+  # Iterate through transformers
+  # Train on previous tranformer's outputs.
   current_instances = instances
   new_transformers = Transformer[]
   for t_index in 1:length(transformers)
@@ -188,9 +180,10 @@ function fit!(pipe::Pipeline, instances::Matrix, labels::Vector)
   return pipe
 end
 
-function transform!(pipe::Pipeline, instances::Matrix)
+function transform!(pipe::Pipeline, instances::Matrix{Float64})
   transformers = pipe.model[:impl][:transformers]
 
+  # Transform on previous tranformer's outputs.
   current_instances = instances
   for t_index in 1:length(transformers)
     transformer = transformers[t_index]
@@ -217,17 +210,21 @@ type Wrapper <: Transformer
   end
 end
 
-function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
+function fit!(wrapper::Wrapper,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
+  # Create transformer
   transformer_options = wrapper.options[:transformer_options]
   transformer = create_transformer(
     wrapper.options[:transformer],
     transformer_options
   )
-
   if transformer_options != nothing
     transformer_options = 
       nested_dict_merge(transformer.options, transformer_options)
   end
+
+  # Train transformer
   fit!(transformer, instances, labels)
 
   wrapper.model[:impl] = {
@@ -238,7 +235,7 @@ function fit!(wrapper::Wrapper, instances::Matrix, labels::Vector)
   return wrapper
 end
 
-function transform!(wrapper::Wrapper, instances::Matrix)
+function transform!(wrapper::Wrapper, instances::Matrix{Float64})
   transformer = wrapper.model[:impl][:transformer]
   return transform!(transformer, instances)
 end

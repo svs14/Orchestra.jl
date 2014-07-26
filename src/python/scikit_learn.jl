@@ -84,7 +84,9 @@ type SKLLearner <: Learner
   end
 end
 
-function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
+function fit!(sklw::SKLLearner,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   impl_options = copy(sklw.options[:impl_options])
   learner = sklw.options[:learner]
   py_learner = learner_dict[learner]
@@ -103,7 +105,7 @@ function fit!(sklw::SKLLearner, instances::Matrix, labels::Vector)
   return sklw
 end
 
-function transform!(sklw::SKLLearner, instances::Matrix)
+function transform!(sklw::SKLLearner, instances::Matrix{Float64})
   return collect(sklw.model[:impl][:predict](instances))
 end
 

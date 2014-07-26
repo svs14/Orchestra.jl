@@ -33,18 +33,38 @@ type PrunedTree <: Learner
   end
 end
 
-function fit!(tree::PrunedTree, instances::Matrix, labels::Vector)
+function fit!(tree::PrunedTree,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   impl_options = tree.options[:impl_options]
 
-  tree.model[:impl] = DT.build_tree(labels, instances)
-  tree.model[:impl] = DT.prune_tree(
-    tree.model[:impl], impl_options[:purity_threshold]
+  tree.model[:impl] = Dict()
+  tree.model[:impl][:output] = tree.options[:output]
+  # Convert labels if classification problem
+  if tree.options[:output] == :class
+    labels = convert(Vector{Int}, labels)
+  end
+
+  tree.model[:impl][:tree] = DT.build_tree(labels, instances)
+  tree.model[:impl][:tree] = DT.prune_tree(
+    tree.model[:impl][:tree], impl_options[:purity_threshold]
   )
 
   return tree
 end
-function transform!(tree::PrunedTree, instances::Matrix)
-  return DT.apply_tree(tree.model[:impl], instances)
+
+function transform!(tree::PrunedTree,
+  instances::Matrix{Float64})
+
+  # Obtain predictions
+  predictions = DT.apply_tree(tree.model[:impl][:tree], instances)
+
+  # Convert labels if classification problem
+  if tree.model[:impl][:output] == :class
+    predictions = convert(Vector{Float64}, predictions)
+  end
+
+  return predictions
 end
 
 # Random forest (C4.5).
@@ -71,7 +91,9 @@ type RandomForest <: Learner
   end
 end
 
-function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
+function fit!(forest::RandomForest,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   # Set training-dependent options
   impl_options = forest.options[:impl_options]
   if impl_options[:num_subfeatures] == nothing
@@ -80,8 +102,15 @@ function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
     num_subfeatures = impl_options[:num_subfeatures]
   end
 
+  forest.model[:impl] = Dict()
+  forest.model[:impl][:output] = forest.options[:output]
+  # Convert labels if classification problem
+  if forest.options[:output] == :class
+    labels = convert(Vector{Int}, labels)
+  end
+
   # Build model
-  forest.model[:impl] = DT.build_forest(
+  forest.model[:impl][:forest] = DT.build_forest(
     labels, 
     instances,
     num_subfeatures, 
@@ -92,8 +121,18 @@ function fit!(forest::RandomForest, instances::Matrix, labels::Vector)
   return forest
 end
 
-function transform!(forest::RandomForest, instances::Matrix)
-  return DT.apply_forest(forest.model[:impl], instances)
+function transform!(forest::RandomForest,
+  instances::Matrix{Float64})
+
+  # Obtain predictions
+  predictions = DT.apply_forest(forest.model[:impl][:forest], instances)
+
+  # Convert labels if classification problem
+  if forest.model[:impl][:output] == :class
+    predictions = convert(Vector{Float64}, predictions)
+  end
+
+  return predictions
 end
 
 # Adaboosted C4.5 decision stumps.
@@ -117,7 +156,14 @@ type DecisionStumpAdaboost <: Learner
 end
 
 function fit!(adaboost::DecisionStumpAdaboost, 
-  instances::Matrix, labels::Vector)
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
+  adaboost.model[:impl] = Dict()
+  adaboost.model[:impl][:output] = adaboost.options[:output]
+  # Convert labels if classification problem
+  if adaboost.options[:output] == :class
+    labels = convert(Vector{Int}, labels)
+  end
 
   # NOTE(svs14): Variable 'model' renamed to 'ensemble'.
   #              This differs to DecisionTree
@@ -127,7 +173,7 @@ function fit!(adaboost::DecisionStumpAdaboost,
     labels, instances, adaboost.options[:impl_options][:num_iterations]
   )
 
-  adaboost.model[:impl] = {
+  adaboost.model[:impl][:adaboost] = {
     :ensemble => ensemble,
     :coefficients => coefficients
   }
@@ -135,12 +181,22 @@ function fit!(adaboost::DecisionStumpAdaboost,
   return adaboost
 end
 
-function transform!(adaboost::DecisionStumpAdaboost, instances::Matrix)
-  return DT.apply_adaboost_stumps(
-    adaboost.model[:impl][:ensemble],
-    adaboost.model[:impl][:coefficients],
+function transform!(adaboost::DecisionStumpAdaboost,
+  instances::Matrix{Float64})
+
+  # Obtain predictions
+  predictions = DT.apply_adaboost_stumps(
+    adaboost.model[:impl][:adaboost][:ensemble],
+    adaboost.model[:impl][:adaboost][:coefficients],
     instances
   )
+
+  # Convert labels if classification problem
+  if adaboost.model[:impl][:output] == :class
+    predictions = convert(Vector{Float64}, predictions)
+  end
+
+  return predictions
 end
 
 end # module

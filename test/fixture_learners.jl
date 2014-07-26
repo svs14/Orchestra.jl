@@ -124,7 +124,9 @@ end
 
 # Methods for transformations
 
-function fit_and_transform!(transformer::Transformer, problem::MLProblem, seed=1)
+function fit_and_transform!(transformer::Transformer,
+  problem::MLProblem, seed=1)
+
   srand(seed)
   fit!(transformer, problem.train_instances, problem.train_labels)
   return transform!(transformer, problem.test_instances)
@@ -140,9 +142,9 @@ type PerfectScoreLearner <: TestLearner
     nfcp = MLProblem(;
       output = :class,
       feature_type = Float64,
-      label_type = Any,
+      label_type = Float64,
       handle_na = false,
-      dataset_type = Matrix
+      dataset_type = Matrix{Float64}
     )
     default_options = {
       :output => :class,
@@ -153,16 +155,16 @@ type PerfectScoreLearner <: TestLearner
 end
 
 function fit!(
-  psl::PerfectScoreLearner, instances::Matrix, labels::Vector)
+  psl::PerfectScoreLearner, instances::Matrix{Float64}, labels::Vector{Float64})
 
   problem = psl.options[:problem]
 
-  dataset = [
-    problem.train_instances problem.train_labels; 
-    problem.test_instances problem.test_labels
-  ]
+  dataset = vcat(
+    hcat(problem.train_instances, problem.train_labels),
+    hcat(problem.test_instances, problem.test_labels)
+  )
   instance_label_map = [
-    dataset[i,1:2] => dataset[i,3] for i=1:size(dataset, 1)
+    dataset[i, 1:2] => dataset[i, 3] for i = 1:size(dataset, 1)
   ]
 
   psl.model = {
@@ -171,13 +173,12 @@ function fit!(
 end
 
 function transform!(
-  psl::PerfectScoreLearner, instances::Matrix)
+  psl::PerfectScoreLearner, instances::Matrix{Float64})
 
   num_instances = size(instances, 1)
-  predictions = Array(String, num_instances)
-  for i in 1:num_instances
-    predictions[i] = psl.model[:map][instances[i,:]]
-  end
+  predictions = Float64[
+    psl.model[:map][instances[i, :]] for i = 1:num_instances
+  ]
   return predictions
 end
 
@@ -194,7 +195,9 @@ type AlwaysSameLabelLearner <: TestLearner
   end
 end
 
-function fit!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
+function fit!(awsl::AlwaysSameLabelLearner,
+  instances::Matrix{Float64}, labels::Vector{Float64})
+
   if awsl.options[:label] == nothing
     awsl.model = {
       :label => first(labels)
@@ -206,7 +209,7 @@ function fit!(awsl::AlwaysSameLabelLearner, instances::Matrix, labels::Vector)
   end
 end
 
-function transform!(awsl::AlwaysSameLabelLearner, instances::Matrix)
+function transform!(awsl::AlwaysSameLabelLearner, instances::Matrix{Float64})
   return fill(awsl.model[:label], size(instances, 1))
 end
 

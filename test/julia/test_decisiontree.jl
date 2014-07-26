@@ -6,9 +6,9 @@ using .FixtureLearners
 nfcp = MLProblem(;
   output = :class,
   feature_type = Float64,
-  label_type = Any,
+  label_type = Float64,
   handle_na = false,
-  dataset_type = Matrix
+  dataset_type = Matrix{Float64}
 )
 
 using FactCheck
@@ -25,9 +25,13 @@ facts("DecisionTree learners") do
 
     # Predict with original backend learner
     srand(1)
-    model = build_tree(nfcp.train_labels, nfcp.train_instances)
+    model = build_tree(
+      convert(Vector{Int}, nfcp.train_labels),
+      nfcp.train_instances
+    )
     model = prune_tree(model, 1.0)
     original_predictions = apply_tree(model, nfcp.test_instances)
+    original_predictions = convert(Vector{Float64}, original_predictions)
 
     # Verify same predictions
     @fact orchestra_predictions => original_predictions
@@ -41,13 +45,14 @@ facts("DecisionTree learners") do
     # Predict with original backend learner
     srand(1)
     model = build_forest(
-      nfcp.train_labels,
+      convert(Vector{Int}, nfcp.train_labels),
       nfcp.train_instances,
       size(nfcp.train_instances, 2),
       10,
       0.7
     )
     original_predictions = apply_forest(model, nfcp.test_instances)
+    original_predictions = convert(Vector{Float64}, original_predictions)
 
     # Verify same predictions
     @fact orchestra_predictions => original_predictions
@@ -61,13 +66,14 @@ facts("DecisionTree learners") do
     # Predict with original backend learner
     srand(1)
     model, coeffs = build_adaboost_stumps(
-      nfcp.train_labels,
+      convert(Vector{Int}, nfcp.train_labels),
       nfcp.train_instances,
       7
     )
     original_predictions = apply_adaboost_stumps(
       model, coeffs, nfcp.test_instances
     )
+    original_predictions = convert(Vector{Float64}, original_predictions)
 
     # Verify same predictions
     @fact orchestra_predictions => original_predictions

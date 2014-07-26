@@ -17,17 +17,17 @@ importall Orchestra.Transformers.MLBaseWrapper
 
 facts("MLBase transformers") do
   context("StandardScaler transforms features") do
-    instances = [
+    instances = Float64[
       5 10;
       -5 0;
       0 5;
     ]
-    labels = [
-      "x";
-      "y";
-      "z";
+    labels = Float64[
+      1.0;
+      2.0;
+      3.0;
     ]
-    expected_transformed = [
+    expected_transformed = Float64[
       1.0 1.0;
       -1.0 -1.0;
       0.0 0.0;

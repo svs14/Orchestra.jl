@@ -2,13 +2,6 @@ module TestDimensionalityReductionWrapper
 
 include(joinpath("..", "fixture_learners.jl"))
 using .FixtureLearners
-fcp = MLProblem(;
-  output = :class,
-  feature_type = Any,
-  label_type = Any,
-  handle_na = true,
-  dataset_type = Matrix
-)
 
 using FactCheck
 
@@ -17,12 +10,12 @@ importall Orchestra.Transformers.DimensionalityReductionWrapper
 
 facts("DimensionalityReduction transformers") do
   context("PCA transforms features") do
-    instances = [
+    instances = Float64[
       5 10;
       -5 0;
       0 5;
     ]
-    labels = ["x"; "y"; "z"]
+    labels = Float64[1.0; 2.0; 3.0]
     options = {:center => false, :scale => false}
     pca = PCA(options)
     fit!(pca, instances, labels)

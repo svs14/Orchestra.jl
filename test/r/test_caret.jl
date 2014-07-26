@@ -5,9 +5,9 @@ using .FixtureLearners
 nfcp = MLProblem(;
   output = :class,
   feature_type = Float64,
-  label_type = Any,
+  label_type = Float64,
   handle_na = false,
-  dataset_type = Matrix
+  dataset_type = Matrix{Float64}
 )
 
 using FactCheck
@@ -16,7 +16,8 @@ using FactCheck
 using MLBase
 importall Orchestra.Types
 importall Orchestra.Transformers.CaretWrapper
-CW = CaretWrapper
+
+# Setup R
 using PyCall
 @pyimport rpy2.robjects as RO
 @pyimport rpy2.robjects.packages as RP
@@ -24,10 +25,15 @@ using PyCall
 N2R.activate()
 RP.importr("caret")
 
-function behavior_check(caret_learner::String, impl_options=Dict())
-  # Predict with Orchestra learner
+# Set seed for Julia and R
+function set_seed(seed=1)
   srand(1)
   pycall(RO.r["set.seed"], PyObject, 1)
+end
+
+function behavior_check(caret_learner::String, impl_options=Dict())
+  # Predict with Orchestra learner
+  set_seed(1)
   learner = CRTLearner({
     :learner => caret_learner, 
     :impl_options => impl_options
@@ -35,12 +41,13 @@ function behavior_check(caret_learner::String, impl_options=Dict())
   orchestra_predictions = fit_and_transform!(learner, nfcp)
 
   # Predict with backend learner
-  srand(1)
-  pycall(RO.r["set.seed"], PyObject, 1)
-  (r_dataset_df, label_factors) = CW.dataset_to_r_dataframe(
-    nfcp.train_instances, nfcp.train_labels
+  set_seed(1)
+  r_dataset_df, r_label_factors = CaretWrapper.dataset_to_r_dataframe(
+    nfcp.train_instances; labels=nfcp.train_labels
   )
-  label_factors = collect(label_factors)
+  label_factors = Float64[
+    parsefloat(lf) for lf in collect(r_label_factors)
+  ]
   caret_formula = RO.Formula("Y ~ .")
   r_fit_control = pycall(RO.r[:trainControl], PyObject,
     method = "none"
@@ -62,12 +69,12 @@ function behavior_check(caret_learner::String, impl_options=Dict())
       tuneGrid = RO.DataFrame(impl_options)
     )
   end
-  (r_instance_df, _) = CW.dataset_to_r_dataframe(nfcp.test_instances)
+  r_instance_df, _ = CaretWrapper.dataset_to_r_dataframe(nfcp.test_instances)
   original_predictions = collect(pycall(RO.r[:predict], PyObject,
     r_model,
     newdata = r_instance_df
   ))
-  original_predictions = map(x -> label_factors[x], original_predictions)
+  original_predictions = [label_factors[x] for x in original_predictions]
 
   # Verify same predictions
   @fact orchestra_predictions => original_predictions
@@ -82,20 +89,6 @@ facts("CARET learners") do
   end
   context("CRTLearner with options gives same results as its backend") do
     behavior_check("svmLinear", {:C => 5.0})
-  end
-
-  context("CRTLearner throws on incompatible feature") do
-    instances = {
-      1 "a";
-      2 3;
-    }
-    labels = [
-      "a";
-      "b";
-    ]
-
-    learner = CRTLearner()
-    @fact_throws fit!(learner, instances, labels)
   end
 end
 
