@@ -53,12 +53,12 @@ function score(metric::Symbol, actual, predicted)
   end
 end
 
-# Returns inferred element type of vector.
+# Returns inferred element type of array.
 # If it cannot be determined, will return collection's element type.
 #
 # @param ar Array to infer element type on.
 # @return Inferred element type.
-function infer_eltype(ar::Vector)
+function infer_eltype(ar::Array)
   # Determine element type by reduction loop
   el_type = None
   for el in ar
