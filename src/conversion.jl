@@ -2,10 +2,32 @@
 module Conversion
 
 using Orchestra.Util
+using Orchestra.Structures
+using Orchestra.Types
 
 import DataFrames: DataArray, DataFrame, complete_cases, isna, pool, eltypes
 
 export orchestra_convert
+
+# Returns inferred variable type of array.
+#
+# @param ar Array to infer variable type on.
+# @return Inferred variable type.
+function infer_var_type(ar::AbstractArray)
+  na_mask = orchestra_isna(ar)
+  na_less_ar = ar[!na_mask]
+  el_type = infer_eltype(na_less_ar)
+  if el_type <: Real
+    return NumericVar()
+  elseif el_type <: Symbol || el_type <: String
+    return NominalVar(unique(na_less_ar))
+  else
+    error("Cannot infer variable type for: $(el_type)")
+  end
+end
+
+orchestra_isna(ar::AbstractArray) = Bool[orchestra_isna(x) for x in ar]
+orchestra_isna(x) = isna(x) || typeof(x) <: FloatingPoint && isnan(x)
 
 # Convert target to given type.
 #
@@ -15,6 +37,54 @@ export orchestra_convert
 function orchestra_convert{T}(_::Type{T}, obj;) 
   error("Conversion not provided for given arguments.")
 end
+
+function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
+  column_vars=nothing, column_names=nothing)
+
+  # Create missing options
+  if column_vars == nothing
+    column_vars = [
+      infer_var_type(mat[:, col_ind])
+      for col_ind = 1:size(mat, 2)
+    ]
+  end
+  if column_names == nothing
+    column_names = String[
+      "X$(col_ind)"
+      for col_ind = 1:size(mat, 2)
+    ]
+  end
+
+  # Initialize matrix and context
+  ocdm_mat = similar(mat, Float64)
+  ocdm_ctx = Dict{Symbol, Any}()
+
+  # Create OCDM
+  for col = 1:size(mat, 2)
+    col_var = column_vars[col]
+    col_var_type = typeof(col_var)
+    if col_var_type <: NumericVar
+      for row = 1:size(mat, 1)
+        mat_val = mat[row, col]
+        ocdm_mat[row, col] = orchestra_isna(mat_val) ? nan(Float64) : mat_val
+      end
+    elseif col_var_type <: NominalVar || col_var_type <: OrdinalVar
+      levels = col_var.levels
+      level_dict = Dict(levels, 0:length(levels)-1)
+      for row = 1:size(mat, 1)
+        mat_val = mat[row, col]
+        ocdm_mat[row, col] = 
+          orchestra_isna(mat_val) ? nan(Float64) : level_dict[mat_val]
+      end
+    end
+  end
+  ocdm_ctx[:column_names] = column_names
+  ocdm_ctx[:column_vars] = column_vars
+  ocdm = OCDM(ocdm_mat, ocdm_ctx)
+
+  return ocdm
+end
+
 
 # Convert vector to data array.
 # 

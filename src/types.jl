@@ -1,11 +1,12 @@
 # Orchestra types.
 module Types
 
-import DataFrames: DataArray, DataFrame
+import Orchestra.Structures: OCDM
 
 export Transformer,
        Learner,
        TestLearner,
+       OCDM,
        fit!,
        transform!
 
@@ -32,7 +33,7 @@ function fit!(transformer::Transformer,
   error(typeof(transformer), " does not implement fit!")
 end
 function fit!(transformer::Transformer,
-  instances::DataFrame, labels::DataArray)
+  instances::OCDM, labels::OCDM)
 
   error(typeof(transformer), " does not implement fit!")
 end
@@ -48,7 +49,7 @@ function transform!(transformer::Transformer,
   error(typeof(transformer), " does not implement transform!")
 end
 function transform!(transformer::Transformer,
-  instances::DataFrame)
+  instances::OCDM)
 
   error(typeof(transformer), " does not implement transform!")
 end

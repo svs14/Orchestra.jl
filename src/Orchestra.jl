@@ -3,6 +3,7 @@ module Orchestra
 
 # Load source files
 include("system.jl")
+include("structures.jl")
 include("types.jl")
 include("util.jl")
 include("conversion.jl")

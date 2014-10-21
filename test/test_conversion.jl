@@ -6,6 +6,8 @@ import DataFrames: DataArray, DataFrame
 import DataFrames: complete_cases, isna, pool, eltypes
 import DataFrames: @data, NA, array, PooledDataArray
 
+using Orchestra.Structures
+using Orchestra.Types
 importall Orchestra.Conversion
 
 facts("Orchestra conversion functions") do
@@ -140,6 +142,42 @@ facts("Orchestra conversion functions") do
 
       @fact_throws orchestra_convert(Vector{Float64}, da)
     end
+  end
+
+  context("orchestra_convert handles matrix to OCDM") do
+    mat = {
+      0  1.0      4.0 "a" "low";
+      1  nan(0.0) 3.0 "b" nan(0.0);
+      3  4.0      2.0 "c" "medium";
+      NA 6.0      1.0 "d" "high";
+    }
+    expected_ocdm = OCDM(
+      Float64[
+        0.0      1.0      4.0 0.0 0.0;
+        1.0      nan(0.0) 3.0 1.0 nan(0.0);
+        3.0      4.0      2.0 2.0 1.0;
+        nan(0.0) 6.0      1.0 3.0 2.0;
+      ],
+      (Symbol => Any)[
+        :column_names => String["X1", "X2", "X3", "X4", "X5"],
+        :column_vars => [
+          NumericVar(),
+          NumericVar(),
+          NumericVar(),
+          NominalVar(["a", "b", "c", "d"]),
+          OrdinalVar(["low", "medium", "high"]),
+        ]
+      ]
+    )
+    ocdm = orchestra_convert(OCDM, mat; column_vars = [
+      NumericVar(),
+      NumericVar(),
+      NumericVar(),
+      NominalVar(["a", "b", "c", "d"]),
+      OrdinalVar(["low", "medium", "high"]),
+    ])
+
+    @fact isequal(ocdm, expected_ocdm) => true
   end
 end
 
