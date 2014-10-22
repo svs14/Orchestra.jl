@@ -8,9 +8,6 @@ export OCDM,
        NumericVar,
        CDM
 
-# Orchestra context-driven matrix.
-typealias OCDM CDM
-
 # Variable.
 abstract Variable
 # Nominal variable.
@@ -49,5 +46,8 @@ Base.getindex(x::CDM, key::Symbol) = getindex(x.ctx, key)
 Base.setindex!(x::CDM, val, inds...) = setindex!(x.mat, val, inds...)
 Base.setindex!(x::CDM, val, key::Symbol) = setindex!(x.ctx, val, key)
 Base.deepcopy(x::CDM) = CDM(deepcopy(x.mat), deepcopy(x.ctx))
+
+# Orchestra context-driven matrix.
+typealias OCDM CDM
 
 end # module

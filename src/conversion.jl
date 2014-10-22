@@ -9,26 +9,6 @@ import DataFrames: DataArray, DataFrame, complete_cases, isna, pool, eltypes
 
 export orchestra_convert
 
-# Returns inferred variable type of array.
-#
-# @param ar Array to infer variable type on.
-# @return Inferred variable type.
-function infer_var_type(ar::AbstractArray)
-  na_mask = orchestra_isna(ar)
-  na_less_ar = ar[!na_mask]
-  el_type = infer_eltype(na_less_ar)
-  if el_type <: Real
-    return NumericVar()
-  elseif el_type <: Symbol || el_type <: String
-    return NominalVar(unique(na_less_ar))
-  else
-    error("Cannot infer variable type for: $(el_type)")
-  end
-end
-
-orchestra_isna(ar::AbstractArray) = Bool[orchestra_isna(x) for x in ar]
-orchestra_isna(x) = isna(x) || typeof(x) <: FloatingPoint && isnan(x)
-
 # Convert target to given type.
 #
 # @param _  Target type.
@@ -36,6 +16,16 @@ orchestra_isna(x) = isna(x) || typeof(x) <: FloatingPoint && isnan(x)
 # @return Converted object to target type.
 function orchestra_convert{T}(_::Type{T}, obj;) 
   error("Conversion not provided for given arguments.")
+end
+
+function orchestra_convert(_::Type{OCDM}, vec::AbstractVector;
+  column_vars=nothing, column_names=nothing)
+
+  vec_as_mat = reshape(vec, length(vec), 1)
+  return orchestra_convert(OCDM, vec_as_mat;
+    column_vars = column_vars,
+    column_names = column_names
+  )
 end
 
 function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
@@ -49,10 +39,7 @@ function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
     ]
   end
   if column_names == nothing
-    column_names = String[
-      "X$(col_ind)"
-      for col_ind = 1:size(mat, 2)
-    ]
+    column_names = gen_column_names(size(mat, 2))
   end
 
   # Initialize matrix and context
@@ -60,9 +47,28 @@ function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
   ocdm_ctx = Dict{Symbol, Any}()
 
   # Create OCDM
+  fill_ocdm_mat!(ocdm_mat, mat, column_vars)
+  fill_ocdm_ctx!(ocdm_ctx, column_vars, column_names)
+  ocdm = OCDM(ocdm_mat, ocdm_ctx)
+
+  return ocdm
+end
+
+# Generate column names.
+gen_column_names(len) = String["X$(col_ind)" for col_ind = 1:len]
+
+# Fill OCDM context with required values.
+function fill_ocdm_ctx!(ocdm_ctx, column_vars, column_names)
+  ocdm_ctx[:column_vars] = column_vars
+  ocdm_ctx[:column_names] = column_names
+end
+
+# Fill OCDM matrix with values found in original matrix.
+function fill_ocdm_mat!(ocdm_mat, mat, column_vars)
   for col = 1:size(mat, 2)
     col_var = column_vars[col]
     col_var_type = typeof(col_var)
+
     if col_var_type <: NumericVar
       for row = 1:size(mat, 1)
         mat_val = mat[row, col]
@@ -78,28 +84,18 @@ function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
       end
     end
   end
-  ocdm_ctx[:column_names] = column_names
-  ocdm_ctx[:column_vars] = column_vars
-  ocdm = OCDM(ocdm_mat, ocdm_ctx)
-
-  return ocdm
 end
+
 
 
 # Convert vector to data array.
 # 
 # @param _ DataArray's type.
 # @param vec Vector.
-# @param nan_as_na Treat NaN as NA.
 # @return Data array.
-function orchestra_convert(_::Type{DataArray}, vec::Vector;
-  nan_as_na=true)
-
+function orchestra_convert(_::Type{DataArray}, vec::Vector)
   # Build NA bitmask
-  na_bitmask = Bool[isna(x) for x in vec]
-  if nan_as_na
-    na_bitmask |= Bool[typeof(x) <: FloatingPoint && isnan(x) for x in vec]
-  end
+  na_bitmask = orchestra_isna(vec)
   
   # Build NA-free array, 
   # replacing NA elements with first element that is not NA
@@ -123,15 +119,14 @@ end
 # @param _ DataFrame's type.
 # @param mat Source matrix.
 # @param create_factors Create factors from relevant columns.
-# @param nan_as_na Treat NaN as NA element.
 # @return DataFrame produced from matrix.
 function orchestra_convert(_::Type{DataFrame}, mat::Matrix;
-  create_factors=true, nan_as_na=true)
+  create_factors=true)
 
   # Build columns as data arrays
   columns = Array(Any, size(mat, 2))
   for i = 1:size(mat, 2)
-    columns[i] = orchestra_convert(DataArray, mat[:, i]; nan_as_na=nan_as_na)
+    columns[i] = orchestra_convert(DataArray, mat[:, i])
     
     el_type = eltype(columns[i])
     if create_factors && (el_type <: String || el_type <: Symbol)

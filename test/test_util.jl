@@ -2,8 +2,10 @@ module TestUtil
 
 using FactCheck
 
+importall Orchestra.Structures
 importall Orchestra.Types
 importall Orchestra.Util
+import DataFrames: NA
 
 # NOTE(svs14): Decoupled from module FixtureLearners if we do define this.
 type StubLearner <: TestLearner
@@ -59,13 +61,30 @@ facts("Orchestra util functions") do
     vector = {1,2,3.0,"a"}
     @fact infer_eltype(vector[1:3]) => Real
   end
-
   context("infer_eltype returns empty collection's type") do
     vector = Int[]
     @fact infer_eltype(vector) => Int
 
     vector = []
     @fact infer_eltype(vector) => None
+  end
+
+  context("infer_var_type returns inferred elements type") do
+    vector = {1, 2, NA, nan(0.0)}
+    expected = NumericVar()
+    actual = infer_var_type(vector)
+    @fact actual => expected
+  end
+  context("infer_var_type returns empty collection's type") do
+    vector = Float64[]
+    @fact infer_var_type(vector) => NumericVar()
+
+    vector = []
+    @fact_throws infer_var_type(vector)
+  end
+  context("infer_var_type fails on non-representable variable") do
+    vector = Complex[]
+    @fact_throws infer_var_type(vector)
   end
 
   context("nested_dict_to_tuples produces set of tuples") do

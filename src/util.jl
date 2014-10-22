@@ -1,13 +1,17 @@
 # Various functions that work with learners.
 module Util
 
+importall Orchestra.Structures
 importall Orchestra.Types
 import MLBase: Kfold
+import DataFrames: isna, NA
 
 export holdout,
        kfold,
        score,
        infer_eltype,
+       infer_var_type,
+       orchestra_isna,
        nested_dict_to_tuples,
        nested_dict_set!,
        nested_dict_merge,
@@ -59,20 +63,37 @@ end
 # @param ar Array to infer element type on.
 # @return Inferred element type.
 function infer_eltype(ar::Array)
-  # Determine element type by reduction loop
   el_type = None
   for el in ar
     el_type = typejoin(el_type, typeof(el))
   end
-
-  # If element type cannot be determined, go with collection's element type
   if el_type == None
     el_type = eltype(ar)
   end
-
-  # Return inferred element type
   return el_type
 end
+
+# Returns inferred variable type of array.
+#
+# @param ar Array to infer variable type on.
+# @return Inferred variable type.
+function infer_var_type(ar::AbstractArray)
+  na_mask = orchestra_isna(ar)
+  na_less_ar = ar[!na_mask]
+  el_type = infer_eltype(na_less_ar)
+  if el_type <: None
+    error("Cannot infer variable type for empty array")
+  elseif el_type <: Real
+    return NumericVar()
+  elseif el_type <: Symbol || el_type <: String
+    return NominalVar(unique(na_less_ar))
+  else
+    error("Cannot infer variable type for: $(el_type)")
+  end
+end
+# Returns if elements are NA or NaN.
+orchestra_isna(ar::AbstractArray) = Bool[orchestra_isna(x) for x in ar]
+orchestra_isna(x) = isna(x) || typeof(x) <: FloatingPoint && isnan(x)
 
 # Converts nested dictionary to set of tuples
 #

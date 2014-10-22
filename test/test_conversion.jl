@@ -15,33 +15,12 @@ facts("Orchestra conversion functions") do
     @fact_throws orchestra_convert(Dict, [1,2])
   end
   context("orchestra_convert handles vector to data array") do
-    context("in the simple case") do
-      # Simple case
-      vec = {1.0, 4.0, 3, NA}
-      data_array = orchestra_convert(DataArray, vec)
-      expected = convert(DataArray{Real}, @data([1.0, 4.0, 3, NA]))
+    vec = {1.0, 4.0, 3, NA, nan(3.0)}
+    data_array = orchestra_convert(DataArray, vec)
+    expected = convert(DataArray{Real}, @data([1.0, 4.0, 3, NA, NA]))
 
-      @fact typeof(data_array) <: DataArray => true
-      @fact isequal(data_array, expected) => true
-    end
-    context("treating NaN as NA") do
-      # Treat NaN as NA
-      vec = {1.0, 4.0, 3, NA, nan(3.0)}
-      data_array = orchestra_convert(DataArray, vec)
-      expected = convert(DataArray{Real}, @data([1.0, 4.0, 3, NA, NA]))
-
-      @fact typeof(data_array) <: DataArray => true
-      @fact isequal(data_array, expected) => true
-    end
-    context("not treating NaN as NA") do
-      # Don't treat NaN as NA
-      vec = {1.0, 4.0, 3, NA, nan(3.0)}
-      data_array = orchestra_convert(DataArray, vec; nan_as_na=false)
-      expected = convert(DataArray{Real}, @data([1.0, 4.0, 3, NA, nan(3.0)]))
-
-      @fact typeof(data_array) <: DataArray => true
-      @fact isequal(data_array, expected) => true
-    end
+    @fact typeof(data_array) <: DataArray => true
+    @fact isequal(data_array, expected) => true
   end
 
   context("orchestra_convert handles matrix to data frame") do
@@ -144,6 +123,45 @@ facts("Orchestra conversion functions") do
     end
   end
 
+  context("orchestra_convert handles matrix to OCDM with options") do
+    mat = {
+      0  1.0      4.0 "a" "low";
+      1  nan(0.0) 3.0 "b" nan(0.0);
+      3  4.0      2.0 "c" "medium";
+      NA 6.0      1.0 "d" "high";
+    }
+    expected_ocdm = OCDM(
+      Float64[
+        0.0      1.0      4.0 0.0 0.0;
+        1.0      nan(0.0) 3.0 1.0 nan(0.0);
+        3.0      4.0      2.0 2.0 1.0;
+        nan(0.0) 6.0      1.0 3.0 2.0;
+      ],
+      (Symbol => Any)[
+        :column_names => String["A", "B", "C", "D", "E"],
+        :column_vars => [
+          NumericVar(),
+          NumericVar(),
+          NumericVar(),
+          NominalVar(["a", "b", "c", "d"]),
+          OrdinalVar(["low", "medium", "high"]),
+        ]
+      ]
+    )
+    ocdm = orchestra_convert(OCDM, mat;
+      column_vars = [
+        NumericVar(),
+        NumericVar(),
+        NumericVar(),
+        NominalVar(["a", "b", "c", "d"]),
+        OrdinalVar(["low", "medium", "high"]),
+      ],
+      column_names = String["A", "B", "C", "D", "E"]
+    )
+
+    @fact isequal(ocdm, expected_ocdm) => true
+  end
+
   context("orchestra_convert handles matrix to OCDM") do
     mat = {
       0  1.0      4.0 "a" "low";
@@ -165,17 +183,31 @@ facts("Orchestra conversion functions") do
           NumericVar(),
           NumericVar(),
           NominalVar(["a", "b", "c", "d"]),
-          OrdinalVar(["low", "medium", "high"]),
+          NominalVar(["low", "medium", "high"]),
         ]
       ]
     )
-    ocdm = orchestra_convert(OCDM, mat; column_vars = [
-      NumericVar(),
-      NumericVar(),
-      NumericVar(),
-      NominalVar(["a", "b", "c", "d"]),
-      OrdinalVar(["low", "medium", "high"]),
-    ])
+    ocdm = orchestra_convert(OCDM, mat)
+
+    @fact isequal(ocdm, expected_ocdm) => true
+  end
+  context("orchestra_convert handles vector to OCDM with options") do
+    vec = {"a", "b", "c", NA}
+    expected_ocdm = OCDM(
+      reshape(Float64[0.0, 1.0, 2.0, nan(0.0)], 4, 1),
+      (Symbol => Any)[
+        :column_names => String["Y"],
+        :column_vars => [
+          NominalVar(["a", "b", "c", "d"]),
+        ]
+      ]
+    )
+    ocdm = orchestra_convert(OCDM, vec;
+      column_vars = [
+        NominalVar(["a", "b", "c", "d"])
+      ],
+      column_names = String["Y"]
+    )
 
     @fact isequal(ocdm, expected_ocdm) => true
   end
