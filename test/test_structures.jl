@@ -9,7 +9,6 @@ facts("Orchestra data structures") do
     cdm = OCDM(eye(3))
     cdm[:a] = [:b]
     cdm[1, 1, 1] = 3
-
     @fact cdm[:] == cdm.mat[:] => true
     @fact cdm[:, :] == cdm.mat[:, :] => true
     @fact cdm[:a] == cdm.ctx[:a] == [:b] => true
@@ -27,14 +26,6 @@ facts("Orchestra data structures") do
     cdm = OCDM(eye(3))
     cdm[:a] = [1, 2]
     new_cdm = deepcopy(cdm)
-    push!(new_cdm[:a], 3)
-
-    @fact new_cdm[:a] != cdm[:a] => true
-  end
-  context("OCDM copies") do
-    cdm = OCDM(eye(3))
-    cdm[:a] = [1, 2]
-    new_cdm = copy(cdm)
     push!(new_cdm[:a], 3)
 
     @fact new_cdm[:a] != cdm[:a] => true

@@ -52,25 +52,14 @@ type OCDM <: CDM
   OCDM(mat::AbstractMatrix{Float64}, ctx::Dict{Symbol, Vector}) = new(mat, ctx)
 end
 
-# Does shallow copy on matrix, context (both keys and values).
-function Base.copy(x::OCDM)
-  new_mat = copy(x.mat)
-  new_ctx = Dict{Symbol, Vector}()
-  for key in keys(x.ctx)
-    new_ctx[key] = copy(x[key])
-  end
-  return new_ctx
-end
-
 # Vertical concatenation of multiple OCDMs.
 # First OCDM's context's keys is used
 # for context concatenation.
-# Concatenation uses shallow copy on OCDM context.
 function Base.vcat(xs::OCDM...)
-  ocdm_mat = vcat([x.mat for x in xs]...)
+  ocdm_mat = deepcopy(vcat([x.mat for x in xs]...))
   ocdm_ctx = Dict{Symbol, Vector}()
   for key in keys(xs[1].ctx)
-    ocdm_ctx[key] = vcat([x[key] for x in xs]...)
+    ocdm_ctx[key] = deepcopy(vcat([x[key] for x in xs]...))
   end
   return OCDM(ocdm_mat, ocdm_ctx)
 end
@@ -78,14 +67,9 @@ end
 # Horizontal concatenation of multiple OCDMS.
 # First OCDM's context's keys is used
 # as context
-# Concatenation uses shallow copy on OCDM context.
 function Base.hcat(xs::OCDM...)
-  ocdm_mat = hcat([x.mat for x in xs]...)
-  ocdm_ctx = Dict{Symbol, Vector}()
-  x = xs[1]
-  for key in keys(x.ctx)
-    ocdm_ctx[key] = copy(x[key])
-  end
+  ocdm_mat = deepcopy(hcat([x.mat for x in xs]...))
+  ocdm_ctx = deepcopy(xs[1].ctx)
   return OCDM(ocdm_mat, ocdm_ctx)
 end
 
