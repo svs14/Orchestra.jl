@@ -137,7 +137,7 @@ facts("Orchestra conversion functions") do
         3.0      4.0      2.0 2.0 1.0;
         nan(0.0) 6.0      1.0 3.0 2.0;
       ],
-      (Symbol => Any)[
+      (Symbol => Vector)[
         :column_names => String["A", "B", "C", "D", "E"],
         :column_vars => [
           NumericVar(),
@@ -176,7 +176,7 @@ facts("Orchestra conversion functions") do
         3.0      4.0      2.0 2.0 1.0;
         nan(0.0) 6.0      1.0 3.0 2.0;
       ],
-      (Symbol => Any)[
+      (Symbol => Vector)[
         :column_names => String["X1", "X2", "X3", "X4", "X5"],
         :column_vars => [
           NumericVar(),
@@ -195,7 +195,7 @@ facts("Orchestra conversion functions") do
     vec = {"a", "b", "c", NA}
     expected_ocdm = OCDM(
       reshape(Float64[0.0, 1.0, 2.0, nan(0.0)], 4, 1),
-      (Symbol => Any)[
+      (Symbol => Vector)[
         :column_names => String["Y"],
         :column_vars => [
           NominalVar(["a", "b", "c", "d"]),

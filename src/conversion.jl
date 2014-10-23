@@ -44,7 +44,7 @@ function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
 
   # Initialize matrix and context
   ocdm_mat = similar(mat, Float64)
-  ocdm_ctx = Dict{Symbol, Any}()
+  ocdm_ctx = Dict{Symbol, Vector}()
 
   # Create OCDM
   fill_ocdm_mat!(ocdm_mat, mat, column_vars)
@@ -85,7 +85,6 @@ function fill_ocdm_mat!(ocdm_mat, mat, column_vars)
     end
   end
 end
-
 
 
 # Convert vector to data array.
