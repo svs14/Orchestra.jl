@@ -5,7 +5,8 @@ using Orchestra.Util
 using Orchestra.Structures
 using Orchestra.Types
 
-import DataFrames: DataArray, DataFrame, complete_cases, isna, pool, eltypes
+import DataFrames: DataArray, DataFrame, PooledDataArray, complete_cases
+import DataFrames: isna, pool, eltypes, eachcol
 
 export orchestra_convert
 
@@ -18,9 +19,63 @@ function orchestra_convert{T}(_::Type{T}, obj;)
   error("Conversion not provided for given arguments.")
 end
 
+function orchestra_convert(_::Type{OCDM}, da::DataArray;
+  column_vars=nothing, column_names=nothing)
+
+  # Convert to Vector,then OCDM
+  da_as_mat = orchestra_convert(Vector, da)
+  return orchestra_convert(OCDM, da_as_mat;
+    column_vars=column_vars,
+    column_names=column_names
+  )
+end
+function orchestra_convert(_::Type{OCDM}, pda::PooledDataArray;
+  column_vars=nothing, column_names=nothing)
+
+  # Convert to dataframe,then OCDM
+  if column_vars == nothing
+    column_vars = [NominalVar(levels(pda))]
+  end
+  pda_as_da = convert(DataArray, pda)
+  return orchestra_convert(OCDM, pda_as_da;
+    column_vars=column_vars,
+    column_names=column_names
+  )
+end
+function orchestra_convert(_::Type{OCDM}, df::DataFrame;
+  column_vars=nothing, column_names=nothing)
+
+  # Build column OCDMs
+  col_ocdms = OCDM[]
+  for col = 1:size(df, 2)
+    # Build name
+    col_names = [string(names(df)[col])]
+    if column_names != nothing
+      col_names = [column_names[col]]
+    end
+
+    # Build variable if specified
+    col_vars = nothing
+    if column_vars != nothing
+      col_vars = [column_vars[col]]
+    end
+
+    # Build column OCDM
+    col_ocdm = orchestra_convert(OCDM, df[:, col];
+      column_vars = col_vars,
+      column_names = col_names
+    )
+    push!(col_ocdms, col_ocdm)
+  end
+
+  # Build full ocdm
+  return hcat(col_ocdms...)
+end
+
 function orchestra_convert(_::Type{OCDM}, vec::AbstractVector;
   column_vars=nothing, column_names=nothing)
 
+  # Conver to AbstractMatrix, then OCDM
   vec_as_mat = reshape(vec, length(vec), 1)
   return orchestra_convert(OCDM, vec_as_mat;
     column_vars = column_vars,
@@ -55,7 +110,7 @@ function orchestra_convert(_::Type{OCDM}, mat::AbstractMatrix;
 end
 
 # Generate column names.
-gen_column_names(len) = String["X$(col_ind)" for col_ind = 1:len]
+gen_column_names(len) = String["V$(col_ind)" for col_ind = 1:len]
 
 # Fill OCDM context with required values.
 function fill_ocdm_ctx!(ocdm_ctx, column_vars, column_names)
@@ -65,10 +120,12 @@ end
 
 # Fill OCDM matrix with values found in original matrix.
 function fill_ocdm_mat!(ocdm_mat, mat, column_vars)
+  # Fill values element-by-element
   for col = 1:size(mat, 2)
     col_var = column_vars[col]
     col_var_type = typeof(col_var)
 
+    # Fill value according to variable type
     if col_var_type <: NumericVar
       for row = 1:size(mat, 1)
         mat_val = mat[row, col]
@@ -87,11 +144,6 @@ function fill_ocdm_mat!(ocdm_mat, mat, column_vars)
 end
 
 
-# Convert vector to data array.
-# 
-# @param _ DataArray's type.
-# @param vec Vector.
-# @return Data array.
 function orchestra_convert(_::Type{DataArray}, vec::Vector)
   # Build NA bitmask
   na_bitmask = orchestra_isna(vec)
@@ -110,15 +162,6 @@ function orchestra_convert(_::Type{DataArray}, vec::Vector)
   return data_array
 end
 
-# Convert matrix to dataframe.
-#
-# Creates factors (PooledDataArray) 
-# from String or Symbol columns if option is set.
-# 
-# @param _ DataFrame's type.
-# @param mat Source matrix.
-# @param create_factors Create factors from relevant columns.
-# @return DataFrame produced from matrix.
 function orchestra_convert(_::Type{DataFrame}, mat::Matrix;
   create_factors=true)
 
@@ -138,12 +181,6 @@ function orchestra_convert(_::Type{DataFrame}, mat::Matrix;
   return df
 end
 
-# Converts data array to vector.
-# Throws error if not possible.
-#
-# @param _ Vector's type.
-# @param da Data array.
-# @return Vector.
 function orchestra_convert(_::Type{Vector}, da::DataArray)
   # Build vector, with NA replaced with nan(Float64)
   vec = Array(Any, size(da)...)
@@ -155,11 +192,6 @@ function orchestra_convert(_::Type{Vector}, da::DataArray)
   return vec
 end
 
-# Converts dataframe to matrix.
-# Throws error if not possible.
-#
-# @param df Data frame.
-# @return Matrix.
 function orchestra_convert(_::Type{Matrix}, df::DataFrame)
   # Build matrix, with NA replaced with nan(Float64)
   mat = Array(Any, size(df)...)
@@ -173,12 +205,6 @@ function orchestra_convert(_::Type{Matrix}, df::DataFrame)
   return mat
 end
 
-# Converts data array to float vector.
-# Throws error if not possible.
-#
-# @param _ Vector{Float64}'s type.
-# @param da Data array.
-# @return Float vector.
 function orchestra_convert(_::Type{Vector{Float64}}, da::DataArray)
   # Fail if column is not subtype of Real
   if !issubtype(eltype(da), Real)
@@ -195,12 +221,6 @@ function orchestra_convert(_::Type{Vector{Float64}}, da::DataArray)
   return vec
 end
 
-# Converts dataframe to float matrix.
-# Throws error if not possible.
-#
-# @param _ Matrix{Float64}'s type.
-# @param df Data frame.
-# @return Float matrix.
 function orchestra_convert(_::Type{Matrix{Float64}}, df::DataFrame)
   # Fail if any columns are not subtype of Real
   df_eltypes = eltypes(df)

@@ -44,7 +44,7 @@ facts("Orchestra data structures") do
     @fact isequal(x_cdm, z_cdm) => false
   end
 
-  context("OCDM vcat concatenates") do
+  context("OCDM hcat concatenates") do
     x_cdm = OCDM(eye(3))
     x_cdm[:a] = [1, 2, 3]
     x_cdm[:b] = [:a]
@@ -52,13 +52,13 @@ facts("Orchestra data structures") do
     y_cdm[:a] = [4, 5, 6]
     y_cdm[:b] = [:b]
 
-    e_cdm = OCDM(vcat(eye(3), eye(3)))
+    e_cdm = OCDM(hcat(eye(3), eye(3)))
     e_cdm[:a] = [1, 2, 3, 4, 5, 6]
     e_cdm[:b] = [:a, :b]
     a_cdm = vcat(x_cdm, y_cdm)
     @fact isequal(a_cdm, e_cdm) => true
   end
-  context("OCDM hcat concatenates") do
+  context("OCDM vcat concatenates") do
     x_cdm = OCDM(eye(3))
     x_cdm[:a] = [1, 2, 3]
     x_cdm[:b] = [:a]
@@ -66,7 +66,7 @@ facts("Orchestra data structures") do
     y_cdm[:a] = [1, 2, 3]
     y_cdm[:b] = [:a]
 
-    e_cdm = OCDM(hcat(eye(3), eye(3)))
+    e_cdm = OCDM(vcat(eye(3), eye(3)))
     e_cdm[:a] = [1, 2, 3]
     e_cdm[:b] = [:a]
     a_cdm = hcat(x_cdm, y_cdm)

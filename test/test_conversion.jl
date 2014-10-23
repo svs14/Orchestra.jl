@@ -138,7 +138,7 @@ facts("Orchestra conversion functions") do
         nan(0.0) 6.0      1.0 3.0 2.0;
       ],
       (Symbol => Vector)[
-        :column_names => String["A", "B", "C", "D", "E"],
+        :column_names => ["A", "B", "C", "D", "E"],
         :column_vars => [
           NumericVar(),
           NumericVar(),
@@ -156,7 +156,7 @@ facts("Orchestra conversion functions") do
         NominalVar(["a", "b", "c", "d"]),
         OrdinalVar(["low", "medium", "high"]),
       ],
-      column_names = String["A", "B", "C", "D", "E"]
+      column_names = ["A", "B", "C", "D", "E"]
     )
 
     @fact isequal(ocdm, expected_ocdm) => true
@@ -177,7 +177,7 @@ facts("Orchestra conversion functions") do
         nan(0.0) 6.0      1.0 3.0 2.0;
       ],
       (Symbol => Vector)[
-        :column_names => String["X1", "X2", "X3", "X4", "X5"],
+        :column_names => ["V1", "V2", "V3", "V4", "V5"],
         :column_vars => [
           NumericVar(),
           NumericVar(),
@@ -196,7 +196,7 @@ facts("Orchestra conversion functions") do
     expected_ocdm = OCDM(
       reshape(Float64[0.0, 1.0, 2.0, nan(0.0)], 4, 1),
       (Symbol => Vector)[
-        :column_names => String["Y"],
+        :column_names => ["Y"],
         :column_vars => [
           NominalVar(["a", "b", "c", "d"]),
         ]
@@ -206,10 +206,87 @@ facts("Orchestra conversion functions") do
       column_vars = [
         NominalVar(["a", "b", "c", "d"])
       ],
-      column_names = String["Y"]
+      column_names = ["Y"]
     )
 
     @fact isequal(ocdm, expected_ocdm) => true
+  end
+
+  context("orchestra_convert handles data array to OCDM") do
+    context("with options") do
+      data_array = @data([1.0, 4.0, 3.0, NA])
+      expected_ocdm = OCDM(
+        reshape(Float64[1.0, 4.0, 3.0, nan(0.0)], 4, 1),
+        (Symbol => Vector)[
+          :column_names => ["Y"],
+          :column_vars => [NumericVar()]
+        ]
+      )
+      actual_ocdm = orchestra_convert(OCDM, data_array;
+        column_vars=[NumericVar()],
+        column_names=["Y"]
+      )
+      @fact isequal(actual_ocdm, expected_ocdm) => true
+    end
+  end
+  context("orchestra_convert handles pooled data array to OCDM") do
+    context("with options") do
+      pda = pool(@data(["A", "B", NA, "D"]))
+      expected_ocdm = OCDM(
+        reshape(Float64[0.0, 1.0, nan(0.0), 3.0], 4, 1),
+        (Symbol => Vector)[
+          :column_names => ["Y"],
+          :column_vars => [NominalVar(["A", "B", "C", "D"])]
+        ]
+      )
+      actual_ocdm = orchestra_convert(OCDM, pda;
+        column_vars = [NominalVar(["A", "B", "C", "D"])],
+        column_names = ["Y"]
+      )
+      @fact isequal(actual_ocdm, expected_ocdm) => true
+    end
+  end
+  context("orchestra_convert handles data frame to OCDM") do
+    context("with options") do
+      df = DataFrame(A = 1:4, B = ["M", "F", "F", "M"])
+      expected_ocdm = OCDM(
+        Float64[
+          1.0 0.0;
+          2.0 1.0;
+          3.0 1.0;
+          4.0 0.0;
+        ],
+        (Symbol => Vector)[
+          :column_names => ["A", "B"],
+          :column_vars => [
+            NumericVar(),
+            NominalVar(["M", "F"])
+          ]
+        ]
+      )
+      actual_ocdm = orchestra_convert(OCDM, df;
+        column_vars = [NumericVar(), NominalVar(["M", "F"])],
+        column_names = ["A", "B"]
+      )
+      @fact isequal(actual_ocdm, expected_ocdm) => true
+    end
+    context("without options") do
+      df = DataFrame(A = 1:4, B = ["M", "F", "F", "M"])
+      expected_ocdm = OCDM(
+        Float64[
+          1.0 0.0;
+          2.0 1.0;
+          3.0 1.0;
+          4.0 0.0;
+        ],
+        (Symbol => Vector)[
+          :column_names => ["A", "B"],
+          :column_vars => [NumericVar(), NominalVar(["M", "F"])]
+        ]
+      )
+      actual_ocdm = orchestra_convert(OCDM, df)
+      @fact isequal(actual_ocdm, expected_ocdm) => true
+    end
   end
 end
 

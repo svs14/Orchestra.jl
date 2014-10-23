@@ -55,8 +55,8 @@ end
 # Vertical concatenation of multiple OCDMs.
 # First OCDM's context's keys is used
 # for context concatenation.
-function Base.vcat(xs::OCDM...)
-  ocdm_mat = deepcopy(vcat([x.mat for x in xs]...))
+function Base.hcat(xs::OCDM...)
+  ocdm_mat = deepcopy(hcat([x.mat for x in xs]...))
   ocdm_ctx = Dict{Symbol, Vector}()
   for key in keys(xs[1].ctx)
     ocdm_ctx[key] = deepcopy(vcat([x[key] for x in xs]...))
@@ -67,8 +67,8 @@ end
 # Horizontal concatenation of multiple OCDMS.
 # First OCDM's context's keys is used
 # as context
-function Base.hcat(xs::OCDM...)
-  ocdm_mat = deepcopy(hcat([x.mat for x in xs]...))
+function Base.vcat(xs::OCDM...)
+  ocdm_mat = deepcopy(vcat([x.mat for x in xs]...))
   ocdm_ctx = deepcopy(xs[1].ctx)
   return OCDM(ocdm_mat, ocdm_ctx)
 end
