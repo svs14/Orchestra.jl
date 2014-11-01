@@ -19,6 +19,17 @@ function orchestra_convert{T}(_::Type{T}, obj;)
   error("Conversion not provided for given arguments.")
 end
 
+function orchestra_convert(_::Type{DataArray}, ocdm::OCDM)
+end
+function orchestra_convert(_::Type{PooledDataArray}, ocdm::OCDM)
+end
+function orchestra_convert(_::Type{DataFrame}, ocdm::OCDM)
+end
+function orchestra_convert(_::Type{AbstractVector}, ocdm::OCDM)
+end
+function orchestra_convert(_::Type{AbstractMatrix}, ocdm::OCDM)
+end
+
 function orchestra_convert(_::Type{OCDM}, da::DataArray;
   column_vars=nothing, column_names=nothing)
 
@@ -143,6 +154,7 @@ function fill_ocdm_mat!(ocdm_mat, mat, column_vars)
   end
 end
 
+### DEPRECATED
 
 function orchestra_convert(_::Type{DataArray}, vec::Vector)
   # Build NA bitmask

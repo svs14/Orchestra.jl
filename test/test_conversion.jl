@@ -288,6 +288,16 @@ facts("Orchestra conversion functions") do
       @fact isequal(actual_ocdm, expected_ocdm) => true
     end
   end
+  context("orchestra_convert handles OCDM to matrix") do
+  end
+  context("orchestra_convert handles OCDM to vector") do
+  end
+  context("orchestra_convert handles OCDM to data frame") do
+  end
+  context("orchestra_convert handles OCDM to pooled data array") do
+  end
+  context("orchestra_convert handles OCDM to data array") do
+  end
 end
 
 end # module
